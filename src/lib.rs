@@ -1,5 +1,8 @@
 #![allow(clippy::too_many_arguments)]
 
+#[cfg(test)]
+mod tests;
+
 pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32, mut set_pixel: impl FnMut(i32, i32)) {
     let dx: i32 = i32::abs(x1 - x0);
     let sx: i32 = if x0 < x1 { 1_i32 } else { -1_i32 };
@@ -79,6 +82,9 @@ pub fn plot_line_3d(
     }
 }
 
+/// (xm,ym): center of ellipse
+/// a: width of ellipse
+/// b: height of ellipse
 pub fn plot_ellipse(xm: i32, ym: i32, a: i32, b: i32, mut set_pixel: impl FnMut(i32, i32)) {
     let mut x: i32 = -a;
     let mut y: i32 = 0_i32;
@@ -382,7 +388,7 @@ pub fn plot_quad_bezier(
     plot_quad_bezier_seg(x0, y0, x1, y1, x2, y2, set_pixel);
 }
 
-pub fn plot_quad_rational_bezier_seg(
+fn plot_quad_rational_bezier_seg(
     mut x0: i32,
     mut y0: i32,
     mut x1: i32,
@@ -1075,52 +1081,3 @@ pub fn plotCubicBezier(
         i += 1;
     }
 } */
-
-pub fn plot_line_aa(
-    mut x0: i32,
-    mut y0: i32,
-    x1: i32,
-    y1: i32,
-    mut set_pixel: impl FnMut(i32, i32, i32),
-) {
-    let sx: i32 = if x0 < x1 { 1_i32 } else { -1_i32 };
-    let sy: i32 = if y0 < y1 { 1_i32 } else { -1_i32 };
-    let mut x2: i32;
-    let mut dx: i64 = i32::abs(x1 - x0) as i64;
-    let mut dy: i64 = i32::abs(y1 - y0) as i64;
-    let mut err: i64 = dx * dx + dy * dy;
-    let mut e2: i64 = (if err == 0_i32 as i64 {
-        1_f64
-    } else {
-        0xffff7f_i64 as f64 / f64::sqrt(err as f64)
-    }) as i64;
-    dx *= e2;
-    dy *= e2;
-    err = dx - dy;
-    loop {
-        set_pixel(x0, y0, i32::abs((err - dx + dy) as i32) >> 16_i32);
-        e2 = err;
-        x2 = x0;
-        if 2_i32 as i64 * e2 >= -dx {
-            if x0 == x1 {
-                break;
-            }
-            if e2 + dy < 0xff0000_i64 {
-                set_pixel(x0, y0 + sy, ((e2 + dy) >> 16) as i32);
-            }
-            err -= dy;
-            x0 += sx;
-        }
-        if 2_i32 as i64 * e2 > dy {
-            continue;
-        }
-        if y0 == y1 {
-            break;
-        }
-        if dx - e2 < 0xff0000_i64 {
-            set_pixel(x2 + sx, y0, ((dx - e2) >> 16) as i32);
-        }
-        err += dx;
-        y0 += sy;
-    }
-}
