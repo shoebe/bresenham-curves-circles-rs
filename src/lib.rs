@@ -338,6 +338,21 @@ pub fn plot_quad_bezier(
     plot_quad_bezier_seg(x0, y0, x1, y1, x2, y2, set_pixel);
 }
 
+/// same as plot_quad_bezier but the control point is a thru point
+pub fn plot_quad_bezier_passthrough(
+    x0: i32,
+    y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    x2: i32,
+    y2: i32,
+    set_pixel: impl FnMut(i32, i32),
+) {
+    x1 = 2 * x1 - (x0 + x2) / 2;
+    y1 = 2 * y1 - (y0 + y2) / 2;
+    plot_quad_bezier(x0, y0, x1, y1, x2, y2, set_pixel);
+}
+
 fn plot_quad_rational_bezier_seg(
     mut x0: i32,
     mut y0: i32,
@@ -625,10 +640,13 @@ pub fn plot_rotated_ellipse_rect(
     plot_quad_rational_bezier_seg(x1, y1 - yd, x1, y0, x0 + xd, y0, w, &mut set_pixel);
 }
 
-/// needs at least 3 points (1 bezier)
+/// needs at least 3 points
+/// all points will be on the bezier (passthrough)
 pub fn plot_quad_spline(points: &mut [(i32, i32)], mut set_pixel: impl FnMut(i32, i32)) {
+    const N_MAX: usize = 6;
+
     let mut mi: f32 = 1_f32;
-    let mut m: [f32; 6] = [0.; 6];
+    let mut m: [f32; N_MAX] = [0.; N_MAX];
     let mut x0: i32;
     let mut y0: i32;
     let mut x1: i32;
@@ -637,35 +655,30 @@ pub fn plot_quad_spline(points: &mut [(i32, i32)], mut set_pixel: impl FnMut(i32
     assert!(n > 1);
     let mut x2: i32 = points[n].0;
     let mut y2: i32 = points[n].1;
-    x0 = 8_i32 * points[1].0 - 2_i32 * points[0].0;
+    x0 = 8 * points[1].0 - 2 * points[0].0;
     points[1].0 = x0;
-    y0 = 8_i32 * points[1].1 - 2_i32 * points[0].1;
+    y0 = 8 * points[1].1 - 2 * points[0].1;
     points[1].1 = y0;
 
     for i in 2..n {
-        let i = i as i32;
-        if (i - 2_i32) < 6_i32 {
-            mi = (1.0f64 / (6.0f64 - mi as f64)) as f32;
-            m[(i - 2_i32) as usize] = mi;
+        if (i - 2) < N_MAX {
+            mi = (1.0 / (6.0 - mi as f64)) as f32;
+            m[i - 2] = mi;
         }
-        x0 = f64::floor(((8_i32 * points[i as usize].0) as f32 - x0 as f32 * mi) as f64 + 0.5f64)
-            as i32;
-        points[i as usize].0 = x0;
-        y0 = f64::floor(((8_i32 * points[i as usize].1) as f32 - y0 as f32 * mi) as f64 + 0.5f64)
-            as i32;
-        points[i as usize].1 = y0;
+        x0 = f64::floor(((8 * points[i].0) as f32 - x0 as f32 * mi) as f64 + 0.5) as i32;
+        points[i].0 = x0;
+        y0 = f64::floor(((8 * points[i].1) as f32 - y0 as f32 * mi) as f64 + 0.5) as i32;
+        points[i].1 = y0;
     }
-    x1 = f64::floor((x0 - 2_i32 * x2) as f64 / (5.0f64 - mi as f64) + 0.5f64) as i32;
-    y1 = f64::floor((y0 - 2_i32 * y2) as f64 / (5.0f64 - mi as f64) + 0.5f64) as i32;
+    x1 = f64::floor((x0 - 2 * x2) as f64 / (5.0 - mi as f64) + 0.5) as i32;
+    y1 = f64::floor((y0 - 2 * y2) as f64 / (5.0 - mi as f64) + 0.5) as i32;
 
-    // for (i = n-2; i > 0; i--)
     for i in (1..=(n - 2)).rev() {
-        let i = i as i32;
-        if i <= 6_i32 {
-            mi = m[(i - 1_i32) as usize];
+        if i <= N_MAX {
+            mi = m[i - 1];
         }
-        x0 = f64::floor(((points[i as usize].0 - x1) as f32 * mi) as f64 + 0.5f64) as i32;
-        y0 = f64::floor(((points[i as usize].1 - y1) as f32 * mi) as f64 + 0.5f64) as i32;
+        x0 = f64::floor(((points[i].0 - x1) as f32 * mi) as f64 + 0.5f64) as i32;
+        y0 = f64::floor(((points[i].1 - y1) as f32 * mi) as f64 + 0.5f64) as i32;
         plot_quad_bezier(
             (x0 + x1) / 2_i32,
             (y0 + y1) / 2_i32,
@@ -680,5 +693,5 @@ pub fn plot_quad_spline(points: &mut [(i32, i32)], mut set_pixel: impl FnMut(i32
         y2 = (y0 + y1) / 2_i32;
         y1 = y0;
     }
-    plot_quad_bezier(points[0].0, points[1].0, x1, y1, x2, y2, set_pixel);
+    plot_quad_bezier(points[0].0, points[0].1, x1, y1, x2, y2, set_pixel);
 }

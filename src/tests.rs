@@ -75,12 +75,12 @@ fn test_ellipse_rect() {
 
 #[test]
 fn test_quad_bezier() {
-    let w = 13;
-    let h = 7;
+    let w = 50;
+    let h = 50;
 
     let start = (0, 0);
-    let end = (w as i32 - 1, 0);
-    let pivot = (w as i32 / 2, h as i32 - 1);
+    let pivot = (8, 30);
+    let end = (16, 0);
 
     let mut buf = vec![BLANK; w * h];
 
@@ -90,4 +90,55 @@ fn test_quad_bezier() {
     });
 
     lodepng::encode32_file("generated_images/test_quad_bezier.png", &buf, w, h).unwrap();
+}
+
+#[test]
+fn test_quad_bezier_passthrough() {
+    let w = 50;
+    let h = 50;
+
+    let start = (0, 0);
+    let pivot = (8, 30);
+    let end = (16, 0);
+
+    let mut buf = vec![BLANK; w * h];
+
+    crate::plot_quad_bezier_passthrough(
+        start.0,
+        start.1,
+        pivot.0,
+        pivot.1,
+        end.0,
+        end.1,
+        |x, y| {
+            let i = y as usize * w + x as usize;
+            buf[i] = WHITE;
+        },
+    );
+
+    lodepng::encode32_file(
+        "generated_images/test_quad_bezier_passthrough.png",
+        &buf,
+        w,
+        h,
+    )
+    .unwrap();
+}
+
+#[test]
+fn test_quad_spline() {
+    let w = 60;
+    let h = 50;
+
+    let mut points = vec![(0, 0), (10, 20), (20, 0), (30, 20), (40, 0), (50, 20)];
+
+    let mut buf = vec![BLANK; w * h];
+
+    crate::plot_quad_spline(&mut points, |x, y| {
+        let y = y + 1;
+        let i = y as usize * w + x as usize;
+        buf[i] = WHITE;
+    });
+
+    lodepng::encode32_file("generated_images/test_quad_spline.png", &buf, w, h).unwrap();
 }
