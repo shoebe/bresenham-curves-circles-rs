@@ -1,4 +1,6 @@
+#[allow(unused, non_snake_case)]
 pub fn setPixel(x: i32, y: i32) {}
+#[allow(unused, non_snake_case)]
 pub fn setPixel3D(x: i32, y: i32, z: i32) {}
 
 pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
@@ -7,7 +9,7 @@ pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
     let dy: i32 = -i32::abs(y1 - y0);
     let sy: i32 = if y0 < y1 { 1_i32 } else { -1_i32 };
     let mut err: i32 = dx + dy;
-    let mut e2: i32 = 0;
+    let mut e2: i32;
     loop {
         setPixel(x0, y0);
         e2 = 2_i32 * err;
@@ -175,7 +177,7 @@ pub fn plot_ellipse_rect(mut x0: i32, mut y0: i32, mut x1: i32, mut y1: i32) {
     let mut dx: f64 = 4_f64 * (1.0f64 - a as f64) * b as f64 * b as f64;
     let mut dy: f64 = (4_i32 as i64 * (b1 + 1_i32 as i64) * a * a) as f64;
     let mut err: f64 = dx + dy + (b1 * a * a) as f64;
-    let mut e2: f64 = 0.;
+    let mut e2: f64;
     if x0 > x1 {
         x0 = x1;
         x1 = (x1 as i64 + a) as i32;
@@ -233,10 +235,10 @@ pub fn plot_quad_bezier_seg(
     let mut sy: i32 = y2 - y1;
     let mut xx: i64 = (x0 - x1) as i64;
     let mut yy: i64 = (y0 - y1) as i64;
-    let mut xy: i64 = 0;
-    let mut dx: f64 = 0.;
-    let mut dy: f64 = 0.;
-    let mut err: f64 = 0.;
+    let mut xy: i64;
+    let mut dx: f64;
+    let mut dy: f64;
+    let mut err: f64;
     let mut cur: f64 = (xx * sy as i64 - yy * sx as i64) as f64;
     assert!((xx * sx as i64 <= 0_i32 as i64 && yy * sy as i64 <= 0_i32 as i64));
     if sx as i64 * sx as i64 + sy as i64 * sy as i64 > xx * xx + yy * yy {
@@ -304,7 +306,7 @@ pub fn plot_quad_bezier(
     let mut x: i32 = x0 - x1;
     let mut y: i32 = y0 - y1;
     let mut t: f64 = (x0 - 2_i32 * x1 + x2) as f64;
-    let mut r: f64 = 0.;
+    let mut r: f64;
     if x as i64 * (x2 - x1) as i64 > 0_i32 as i64 {
         if y as i64 * (y2 - y1) as i64 > 0_i32 as i64
             && f64::abs((y0 - 2_i32 * y1 + y2) as f64 / t * x as f64) > i32::abs(y) as f64
@@ -362,7 +364,7 @@ pub fn plot_quad_rational_bezier_seg(
     let mut yy: f64 = (y0 - y1) as f64;
     let mut xy: f64 = xx * sy as f64 + yy * sx as f64;
     let mut cur: f64 = xx * sy as f64 - yy * sx as f64;
-    let mut err: f64 = 0.;
+    let mut err: f64;
     assert!(xx * sx as f64 <= 0.0f64 && yy * sy as f64 <= 0.0f64);
     if cur != 0.0f64 && w as f64 > 0.0f64 {
         if (sx as i64 * sx as i64 + sy as i64 * sy as i64) as f64 > xx * xx + yy * yy {
@@ -444,9 +446,9 @@ pub fn plot_quad_rational_bezier(
     let mut y: i32 = y0 - 2_i32 * y1 + y2;
     let mut xx: f64 = (x0 - x1) as f64;
     let mut yy: f64 = (y0 - y1) as f64;
-    let mut ww: f64 = 0.;
-    let mut t: f64 = 0.;
-    let mut q: f64 = 0.;
+    let mut ww: f64;
+    let mut t: f64;
+    let mut q: f64;
     assert!(w as f64 >= 0.0f64);
     if xx * (x2 - x1) as f64 > 0_i32 as f64 {
         if yy * (y2 - y1) as f64 > 0_i32 as f64 && f64::abs(xx * y as f64) > f64::abs(yy * x as f64)
@@ -975,12 +977,13 @@ pub fn plotCubicBezier(
     }
 } */
 
+#[allow(unused, non_snake_case)]
 fn setPixelAA(x: i32, y: i32, z: i32) {}
 
-pub fn plot_line_AA(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
+pub fn plot_line_aa(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
     let sx: i32 = if x0 < x1 { 1_i32 } else { -1_i32 };
     let sy: i32 = if y0 < y1 { 1_i32 } else { -1_i32 };
-    let mut x2: i32 = 0;
+    let mut x2: i32;
     let mut dx: i64 = i32::abs(x1 - x0) as i64;
     let mut dy: i64 = i32::abs(y1 - y0) as i64;
     let mut err: i64 = dx * dx + dy * dy;
