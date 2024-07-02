@@ -1,9 +1,6 @@
-#[allow(unused, non_snake_case)]
-pub fn setPixel(x: i32, y: i32) {}
-#[allow(unused, non_snake_case)]
-pub fn setPixel3D(x: i32, y: i32, z: i32) {}
+#![allow(clippy::too_many_arguments)]
 
-pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
+pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32, mut set_pixel: impl FnMut(i32, i32)) {
     let dx: i32 = i32::abs(x1 - x0);
     let sx: i32 = if x0 < x1 { 1_i32 } else { -1_i32 };
     let dy: i32 = -i32::abs(y1 - y0);
@@ -11,7 +8,7 @@ pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
     let mut err: i32 = dx + dy;
     let mut e2: i32;
     loop {
-        setPixel(x0, y0);
+        set_pixel(x0, y0);
         e2 = 2_i32 * err;
         if e2 >= dy {
             if x0 == x1 {
@@ -31,7 +28,15 @@ pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
     }
 }
 
-pub fn plot_line_3d(mut x0: i32, mut y0: i32, mut z0: i32, mut x1: i32, mut y1: i32, mut z1: i32) {
+pub fn plot_line_3d(
+    mut x0: i32,
+    mut y0: i32,
+    mut z0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut z1: i32,
+    mut set_pixel: impl FnMut(i32, i32, i32),
+) {
     let dx: i32 = i32::abs(x1 - x0);
     let sx: i32 = if x0 < x1 { 1_i32 } else { -1_i32 };
     let dy: i32 = i32::abs(y1 - y0);
@@ -50,7 +55,7 @@ pub fn plot_line_3d(mut x0: i32, mut y0: i32, mut z0: i32, mut x1: i32, mut y1: 
     y1 = z1;
     x1 = y1;
     loop {
-        setPixel3D(x0, y0, z0);
+        set_pixel(x0, y0, z0);
         let fresh0 = i;
         i -= 1;
         if fresh0 == 0_i32 {
@@ -74,16 +79,16 @@ pub fn plot_line_3d(mut x0: i32, mut y0: i32, mut z0: i32, mut x1: i32, mut y1: 
     }
 }
 
-pub fn plot_ellipse(xm: i32, ym: i32, a: i32, b: i32) {
+pub fn plot_ellipse(xm: i32, ym: i32, a: i32, b: i32, mut set_pixel: impl FnMut(i32, i32)) {
     let mut x: i32 = -a;
     let mut y: i32 = 0_i32;
     let mut e2: i64 = b as i64 * b as i64;
     let mut err: i64 = x as i64 * (2_i32 as i64 * e2 + x as i64) + e2;
     loop {
-        setPixel(xm - x, ym + y);
-        setPixel(xm + x, ym + y);
-        setPixel(xm + x, ym - y);
-        setPixel(xm - x, ym - y);
+        set_pixel(xm - x, ym + y);
+        set_pixel(xm + x, ym + y);
+        set_pixel(xm + x, ym - y);
+        set_pixel(xm - x, ym - y);
         e2 = 2_i32 as i64 * err;
         if e2 >= (x * 2_i32 + 1_i32) as i64 * b as i64 * b as i64 {
             x += 1;
@@ -103,12 +108,18 @@ pub fn plot_ellipse(xm: i32, ym: i32, a: i32, b: i32) {
         if fresh1 >= b {
             break;
         }
-        setPixel(xm, ym + y);
-        setPixel(xm, ym - y);
+        set_pixel(xm, ym + y);
+        set_pixel(xm, ym - y);
     }
 }
 
-pub fn plot_optimized_ellipse(xm: i32, ym: i32, a: i32, b: i32) {
+pub fn plot_optimized_ellipse(
+    xm: i32,
+    ym: i32,
+    a: i32,
+    b: i32,
+    mut set_pixel: impl FnMut(i32, i32),
+) {
     let mut x: i64 = -a as i64;
     let mut y: i64 = 0_i32 as i64;
     let mut e2: i64 = b as i64;
@@ -116,10 +127,10 @@ pub fn plot_optimized_ellipse(xm: i32, ym: i32, a: i32, b: i32) {
     let mut dy: i64 = x * x;
     let mut err: i64 = dx + dy;
     loop {
-        setPixel(xm - x as i32, ym + y as i32);
-        setPixel(xm + x as i32, ym + y as i32);
-        setPixel(xm + x as i32, ym - y as i32);
-        setPixel(xm - x as i32, ym - y as i32);
+        set_pixel(xm - x as i32, ym + y as i32);
+        set_pixel(xm + x as i32, ym + y as i32);
+        set_pixel(xm + x as i32, ym - y as i32);
+        set_pixel(xm - x as i32, ym - y as i32);
         e2 = 2_i32 as i64 * err;
         if e2 >= dx {
             x += 1;
@@ -141,20 +152,20 @@ pub fn plot_optimized_ellipse(xm: i32, ym: i32, a: i32, b: i32) {
         if fresh2 >= b as i64 {
             break;
         }
-        setPixel(xm, ym + y as i32);
-        setPixel(xm, ym - y as i32);
+        set_pixel(xm, ym + y as i32);
+        set_pixel(xm, ym - y as i32);
     }
 }
 
-pub fn plot_circle(xm: i32, ym: i32, mut r: i32) {
+pub fn plot_circle(xm: i32, ym: i32, mut r: i32, mut set_pixel: impl FnMut(i32, i32)) {
     let mut x: i32 = -r;
     let mut y: i32 = 0_i32;
     let mut err: i32 = 2_i32 - 2_i32 * r;
     loop {
-        setPixel(xm - x, ym + y);
-        setPixel(xm - y, ym - x);
-        setPixel(xm + x, ym - y);
-        setPixel(xm + y, ym + x);
+        set_pixel(xm - x, ym + y);
+        set_pixel(xm - y, ym - x);
+        set_pixel(xm + x, ym - y);
+        set_pixel(xm + y, ym + x);
         r = err;
         if r <= y {
             y += 1;
@@ -170,7 +181,13 @@ pub fn plot_circle(xm: i32, ym: i32, mut r: i32) {
     }
 }
 
-pub fn plot_ellipse_rect(mut x0: i32, mut y0: i32, mut x1: i32, mut y1: i32) {
+pub fn plot_ellipse_rect(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut set_pixel: impl FnMut(i32, i32),
+) {
     let mut a: i64 = i32::abs(x1 - x0) as i64;
     let b: i64 = i32::abs(y1 - y0) as i64;
     let mut b1: i64 = b & 1_i32 as i64;
@@ -190,10 +207,10 @@ pub fn plot_ellipse_rect(mut x0: i32, mut y0: i32, mut x1: i32, mut y1: i32) {
     a = 8_i32 as i64 * a * a;
     b1 = 8_i32 as i64 * b * b;
     loop {
-        setPixel(x1, y0);
-        setPixel(x0, y0);
-        setPixel(x0, y1);
-        setPixel(x1, y1);
+        set_pixel(x1, y0);
+        set_pixel(x0, y0);
+        set_pixel(x0, y1);
+        set_pixel(x1, y1);
         e2 = 2_f64 * err;
         if e2 <= dy {
             y0 += 1;
@@ -212,14 +229,14 @@ pub fn plot_ellipse_rect(mut x0: i32, mut y0: i32, mut x1: i32, mut y1: i32) {
         }
     }
     while (y0 - y1) as i64 <= b {
-        setPixel(x0 - 1_i32, y0);
+        set_pixel(x0 - 1_i32, y0);
         let fresh3 = y0;
         y0 += 1;
-        setPixel(x1 + 1_i32, fresh3);
-        setPixel(x0 - 1_i32, y1);
+        set_pixel(x1 + 1_i32, fresh3);
+        set_pixel(x0 - 1_i32, y1);
         let fresh4 = y1;
         y1 -= 1;
-        setPixel(x1 + 1_i32, fresh4);
+        set_pixel(x1 + 1_i32, fresh4);
     }
 }
 
@@ -230,6 +247,7 @@ pub fn plot_quad_bezier_seg(
     mut y1: i32,
     mut x2: i32,
     mut y2: i32,
+    mut set_pixel: impl FnMut(i32, i32),
 ) {
     let mut sx: i32 = x2 - x1;
     let mut sy: i32 = y2 - y1;
@@ -270,7 +288,7 @@ pub fn plot_quad_bezier_seg(
         yy += yy;
         err = dx + dy + xy as f64;
         loop {
-            setPixel(x0, y0);
+            set_pixel(x0, y0);
             if x0 == x2 && y0 == y2 {
                 return;
             }
@@ -292,7 +310,7 @@ pub fn plot_quad_bezier_seg(
             }
         }
     }
-    plot_line(x0, y0, x2, y2);
+    plot_line(x0, y0, x2, y2, set_pixel);
 }
 
 pub fn plot_quad_bezier(
@@ -302,6 +320,7 @@ pub fn plot_quad_bezier(
     mut y1: i32,
     mut x2: i32,
     mut y2: i32,
+    mut set_pixel: impl FnMut(i32, i32),
 ) {
     let mut x: i32 = x0 - x1;
     let mut y: i32 = y0 - y1;
@@ -322,7 +341,15 @@ pub fn plot_quad_bezier(
         x = f64::floor(t + 0.5f64) as i32;
         y = f64::floor(r + 0.5f64) as i32;
         r = (y1 - y0) as f64 * (t - x0 as f64) / (x1 - x0) as f64 + y0 as f64;
-        plot_quad_bezier_seg(x0, y0, x, f64::floor(r + 0.5f64) as i32, x, y);
+        plot_quad_bezier_seg(
+            x0,
+            y0,
+            x,
+            f64::floor(r + 0.5f64) as i32,
+            x,
+            y,
+            &mut set_pixel,
+        );
         r = (y1 - y2) as f64 * (t - x2 as f64) / (x1 - x2) as f64 + y2 as f64;
         x1 = x;
         x0 = x1;
@@ -337,14 +364,22 @@ pub fn plot_quad_bezier(
         x = f64::floor(r + 0.5f64) as i32;
         y = f64::floor(t + 0.5f64) as i32;
         r = (x1 - x0) as f64 * (t - y0 as f64) / (y1 - y0) as f64 + x0 as f64;
-        plot_quad_bezier_seg(x0, y0, f64::floor(r + 0.5f64) as i32, y, x, y);
+        plot_quad_bezier_seg(
+            x0,
+            y0,
+            f64::floor(r + 0.5f64) as i32,
+            y,
+            x,
+            y,
+            &mut set_pixel,
+        );
         r = (x1 - x2) as f64 * (t - y2 as f64) / (y1 - y2) as f64 + x2 as f64;
         x0 = x;
         x1 = f64::floor(r + 0.5f64) as i32;
         y1 = y;
         y0 = y1;
     }
-    plot_quad_bezier_seg(x0, y0, x1, y1, x2, y2);
+    plot_quad_bezier_seg(x0, y0, x1, y1, x2, y2, set_pixel);
 }
 
 pub fn plot_quad_rational_bezier_seg(
@@ -355,6 +390,7 @@ pub fn plot_quad_rational_bezier_seg(
     mut x2: i32,
     mut y2: i32,
     mut w: f32,
+    mut set_pixel: impl FnMut(i32, i32),
 ) {
     let mut sx: i32 = x2 - x1;
     let mut sy: i32 = y2 - y1;
@@ -399,15 +435,26 @@ pub fn plot_quad_rational_bezier_seg(
             ) as i32;
             dx = f64::floor((w * x1 as f32 + x0 as f32) as f64 * xy + 0.5f64);
             dy = f64::floor((y1 as f32 * w + y0 as f32) as f64 * xy + 0.5f64);
-            plot_quad_rational_bezier_seg(x0, y0, dx as i32, dy as i32, sx, sy, cur as f32);
+            plot_quad_rational_bezier_seg(
+                x0,
+                y0,
+                dx as i32,
+                dy as i32,
+                sx,
+                sy,
+                cur as f32,
+                &mut set_pixel,
+            );
             dx = f64::floor((w * x1 as f32 + x2 as f32) as f64 * xy + 0.5f64);
             dy = f64::floor((y1 as f32 * w + y2 as f32) as f64 * xy + 0.5f64);
-            plot_quad_rational_bezier_seg(sx, sy, dx as i32, dy as i32, x2, y2, cur as f32);
+            plot_quad_rational_bezier_seg(
+                sx, sy, dx as i32, dy as i32, x2, y2, cur as f32, set_pixel,
+            );
             return;
         }
         err = dx + dy - xy;
         loop {
-            setPixel(x0, y0);
+            set_pixel(x0, y0);
             if x0 == x2 && y0 == y2 {
                 return;
             }
@@ -430,7 +477,7 @@ pub fn plot_quad_rational_bezier_seg(
             }
         }
     }
-    plot_line(x0, y0, x2, y2);
+    plot_line(x0, y0, x2, y2, set_pixel);
 }
 
 pub fn plot_quad_rational_bezier(
@@ -441,6 +488,7 @@ pub fn plot_quad_rational_bezier(
     mut x2: i32,
     mut y2: i32,
     mut w: f32,
+    mut set_pixel: impl FnMut(i32, i32),
 ) {
     let mut x: i32 = x0 - 2_i32 * x1 + x2;
     let mut y: i32 = y0 - 2_i32 * y1 + y2;
@@ -486,7 +534,16 @@ pub fn plot_quad_rational_bezier(
         x = f64::floor(xx + 0.5f64) as i32;
         y = f64::floor(yy + 0.5f64) as i32;
         yy = (xx - x0 as f64) * (y1 - y0) as f64 / (x1 - x0) as f64 + y0 as f64;
-        plot_quad_rational_bezier_seg(x0, y0, x, f64::floor(yy + 0.5f64) as i32, x, y, ww as f32);
+        plot_quad_rational_bezier_seg(
+            x0,
+            y0,
+            x,
+            f64::floor(yy + 0.5f64) as i32,
+            x,
+            y,
+            ww as f32,
+            &mut set_pixel,
+        );
         yy = (xx - x2 as f64) * (y1 - y2) as f64 / (x1 - x2) as f64 + y2 as f64;
         y1 = f64::floor(yy + 0.5f64) as i32;
         x1 = x;
@@ -522,17 +579,33 @@ pub fn plot_quad_rational_bezier(
         x = f64::floor(xx + 0.5f64) as i32;
         y = f64::floor(yy + 0.5f64) as i32;
         xx = (x1 - x0) as f64 * (yy - y0 as f64) / (y1 - y0) as f64 + x0 as f64;
-        plot_quad_rational_bezier_seg(x0, y0, f64::floor(xx + 0.5f64) as i32, y, x, y, ww as f32);
+        plot_quad_rational_bezier_seg(
+            x0,
+            y0,
+            f64::floor(xx + 0.5f64) as i32,
+            y,
+            x,
+            y,
+            ww as f32,
+            &mut set_pixel,
+        );
         xx = (x1 - x2) as f64 * (yy - y2 as f64) / (y1 - y2) as f64 + x2 as f64;
         x1 = f64::floor(xx + 0.5f64) as i32;
         x0 = x;
         y1 = y;
         y0 = y1;
     }
-    plot_quad_rational_bezier_seg(x0, y0, x1, y1, x2, y2, w * w);
+    plot_quad_rational_bezier_seg(x0, y0, x1, y1, x2, y2, w * w, set_pixel);
 }
 
-pub fn plot_rotated_ellipse(x: i32, y: i32, mut a: i32, mut b: i32, angle: f32) {
+pub fn plot_rotated_ellipse(
+    x: i32,
+    y: i32,
+    mut a: i32,
+    mut b: i32,
+    angle: f32,
+    set_pixel: impl FnMut(i32, i32),
+) {
     let mut xd: f32 = (a as i64 * a as i64) as f32;
     let mut yd: f32 = (b as i64 * b as i64) as f32;
     let s: f32 = f64::sin(angle as f64) as f32;
@@ -548,15 +621,23 @@ pub fn plot_rotated_ellipse(x: i32, y: i32, mut a: i32, mut b: i32, angle: f32) 
         x + a,
         y + b,
         ((4_f32 * zd) as f64 * f64::cos(angle as f64)) as i64,
+        set_pixel,
     );
 }
 
-pub fn plot_rotated_ellipse_rect(x0: i32, y0: i32, x1: i32, y1: i32, zd: i64) {
+pub fn plot_rotated_ellipse_rect(
+    x0: i32,
+    y0: i32,
+    x1: i32,
+    y1: i32,
+    zd: i64,
+    mut set_pixel: impl FnMut(i32, i32),
+) {
     let mut xd: i32 = x1 - x0;
     let mut yd: i32 = y1 - y0;
     let mut w: f32 = (xd as i64 * yd as i64) as f32;
     if zd == 0_i32 as i64 {
-        return plot_ellipse_rect(x0, y0, x1, y1);
+        return plot_ellipse_rect(x0, y0, x1, y1, &mut set_pixel);
     }
     if w as f64 != 0.0f64 {
         w = (w - zd as f32) / (w + w);
@@ -564,10 +645,28 @@ pub fn plot_rotated_ellipse_rect(x0: i32, y0: i32, x1: i32, y1: i32, zd: i64) {
     assert!(w as f64 <= 1.0f64 && w as f64 >= 0.0f64,);
     xd = f64::floor((xd as f32 * w) as f64 + 0.5f64) as i32;
     yd = f64::floor((yd as f32 * w) as f64 + 0.5f64) as i32;
-    plot_quad_rational_bezier_seg(x0, y0 + yd, x0, y0, x0 + xd, y0, (1.0f64 - w as f64) as f32);
-    plot_quad_rational_bezier_seg(x0, y0 + yd, x0, y1, x1 - xd, y1, w);
-    plot_quad_rational_bezier_seg(x1, y1 - yd, x1, y1, x1 - xd, y1, (1.0f64 - w as f64) as f32);
-    plot_quad_rational_bezier_seg(x1, y1 - yd, x1, y0, x0 + xd, y0, w);
+    plot_quad_rational_bezier_seg(
+        x0,
+        y0 + yd,
+        x0,
+        y0,
+        x0 + xd,
+        y0,
+        (1.0f64 - w as f64) as f32,
+        &mut set_pixel,
+    );
+    plot_quad_rational_bezier_seg(x0, y0 + yd, x0, y1, x1 - xd, y1, w, &mut set_pixel);
+    plot_quad_rational_bezier_seg(
+        x1,
+        y1 - yd,
+        x1,
+        y1,
+        x1 - xd,
+        y1,
+        (1.0f64 - w as f64) as f32,
+        &mut set_pixel,
+    );
+    plot_quad_rational_bezier_seg(x1, y1 - yd, x1, y0, x0 + xd, y0, w, &mut set_pixel);
 }
 
 // requires unsafe
@@ -977,10 +1076,13 @@ pub fn plotCubicBezier(
     }
 } */
 
-#[allow(unused, non_snake_case)]
-fn setPixelAA(x: i32, y: i32, z: i32) {}
-
-pub fn plot_line_aa(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
+pub fn plot_line_aa(
+    mut x0: i32,
+    mut y0: i32,
+    x1: i32,
+    y1: i32,
+    mut set_pixel: impl FnMut(i32, i32, i32),
+) {
     let sx: i32 = if x0 < x1 { 1_i32 } else { -1_i32 };
     let sy: i32 = if y0 < y1 { 1_i32 } else { -1_i32 };
     let mut x2: i32;
@@ -996,7 +1098,7 @@ pub fn plot_line_aa(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
     dy *= e2;
     err = dx - dy;
     loop {
-        setPixelAA(x0, y0, i32::abs((err - dx + dy) as i32) >> 16_i32);
+        set_pixel(x0, y0, i32::abs((err - dx + dy) as i32) >> 16_i32);
         e2 = err;
         x2 = x0;
         if 2_i32 as i64 * e2 >= -dx {
@@ -1004,7 +1106,7 @@ pub fn plot_line_aa(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
                 break;
             }
             if e2 + dy < 0xff0000_i64 {
-                setPixelAA(x0, y0 + sy, ((e2 + dy) >> 16) as i32);
+                set_pixel(x0, y0 + sy, ((e2 + dy) >> 16) as i32);
             }
             err -= dy;
             x0 += sx;
@@ -1016,7 +1118,7 @@ pub fn plot_line_aa(mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
             break;
         }
         if dx - e2 < 0xff0000_i64 {
-            setPixelAA(x2 + sx, y0, ((dx - e2) >> 16) as i32);
+            set_pixel(x2 + sx, y0, ((dx - e2) >> 16) as i32);
         }
         err += dx;
         y0 += sy;
