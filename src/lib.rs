@@ -1,5 +1,4 @@
 #![allow(clippy::too_many_arguments)]
-
 #[cfg(test)]
 mod tests;
 
@@ -28,57 +27,6 @@ pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32, mut set_pixel: impl
         }
         err += dx;
         y0 += sy;
-    }
-}
-
-pub fn plot_line_3d(
-    mut x0: i32,
-    mut y0: i32,
-    mut z0: i32,
-    mut x1: i32,
-    mut y1: i32,
-    mut z1: i32,
-    mut set_pixel: impl FnMut(i32, i32, i32),
-) {
-    let dx: i32 = i32::abs(x1 - x0);
-    let sx: i32 = if x0 < x1 { 1_i32 } else { -1_i32 };
-    let dy: i32 = i32::abs(y1 - y0);
-    let sy: i32 = if y0 < y1 { 1_i32 } else { -1_i32 };
-    let dz: i32 = i32::abs(z1 - z0);
-    let sz: i32 = if z0 < z1 { 1_i32 } else { -1_i32 };
-    let dm: i32 = if dx > dy && dx > dz {
-        dx
-    } else if dy > dz {
-        dy
-    } else {
-        dz
-    };
-    let mut i: i32 = dm;
-    z1 = dm / 2_i32;
-    y1 = z1;
-    x1 = y1;
-    loop {
-        set_pixel(x0, y0, z0);
-        let fresh0 = i;
-        i -= 1;
-        if fresh0 == 0_i32 {
-            break;
-        }
-        x1 -= dx;
-        if x1 < 0_i32 {
-            x1 += dm;
-            x0 += sx;
-        }
-        y1 -= dy;
-        if y1 < 0_i32 {
-            y1 += dm;
-            y0 += sy;
-        }
-        z1 -= dz;
-        if z1 < 0_i32 {
-            z1 += dm;
-            z0 += sz;
-        }
     }
 }
 
@@ -675,8 +623,7 @@ pub fn plot_rotated_ellipse_rect(
     plot_quad_rational_bezier_seg(x1, y1 - yd, x1, y0, x0 + xd, y0, w, &mut set_pixel);
 }
 
-// requires unsafe
-/* pub fn plotCubicBezierSeg(
+unsafe fn plot_cubic_bezier_seg(
     mut x0: i32,
     mut y0: i32,
     mut x1: f32,
@@ -685,35 +632,20 @@ pub fn plot_rotated_ellipse_rect(
     mut y2: f32,
     mut x3: i32,
     mut y3: i32,
+    mut set_pixel: impl FnMut(i32, i32),
 ) {
     let mut f: i32 = 0;
     let mut fx: i32 = 0;
     let mut fy: i32 = 0;
     let mut leg: i32 = 1 as i32;
-    let mut sx: i32 = if x0 < x3 {
-        1 as i32
-    } else {
-        -(1 as i32)
-    };
-    let mut sy: i32 = if y0 < y3 {
-        1 as i32
-    } else {
-        -(1 as i32)
-    };
-    let mut xc: f32 = -f64::abs(
-        (x0 as f32 + x1 - x2 - x3 as f32) as f64,
-    ) as f32;
-    let mut xa: f32 = xc
-        - (4 as i32 * sx) as f32 * (x1 - x2);
-    let mut xb: f32 = sx as f32
-        * (x0 as f32 - x1 - x2 + x3 as f32);
-    let mut yc: f32 = -f64::abs(
-        (y0 as f32 + y1 - y2 - y3 as f32) as f64,
-    ) as f32;
-    let mut ya: f32 = yc
-        - (4 as i32 * sy) as f32 * (y1 - y2);
-    let mut yb: f32 = sy as f32
-        * (y0 as f32 - y1 - y2 + y3 as f32);
+    let mut sx: i32 = if x0 < x3 { 1 as i32 } else { -(1 as i32) };
+    let mut sy: i32 = if y0 < y3 { 1 as i32 } else { -(1 as i32) };
+    let mut xc: f32 = -f64::abs((x0 as f32 + x1 - x2 - x3 as f32) as f64) as f32;
+    let mut xa: f32 = xc - (4 as i32 * sx) as f32 * (x1 - x2);
+    let mut xb: f32 = sx as f32 * (x0 as f32 - x1 - x2 + x3 as f32);
+    let mut yc: f32 = -f64::abs((y0 as f32 + y1 - y2 - y3 as f32) as f64) as f32;
+    let mut ya: f32 = yc - (4 as i32 * sy) as f32 * (y1 - y2);
+    let mut yb: f32 = sy as f32 * (y0 as f32 - y1 - y2 + y3 as f32);
     let mut ab: f64 = 0.;
     let mut ac: f64 = 0.;
     let mut bc: f64 = 0.;
@@ -724,40 +656,31 @@ pub fn plot_rotated_ellipse_rect(
     let mut dx: f64 = 0.;
     let mut dy: f64 = 0.;
     let mut ex: f64 = 0.;
-    let mut pxy: &mut f64 = &mut 0.;
+    let mut pxy: *mut f64 = 0 as *mut f64;
     let mut EP: f64 = 0.01f64;
     assert!(
-        ((((x1 - x0 as f32) * (x2 - x3 as f32)) as f64)
-            < EP
+        ((((x1 - x0 as f32) * (x2 - x3 as f32)) as f64) < EP
             && ((((x3 - x0) as f32 * (x1 - x2)) as f64) < EP
                 || ((xb * xb) as f64) < (xa * xc) as f64 + EP))
     );
     assert!(
-        ((((y1 - y0 as f32) * (y2 - y3 as f32)) as f64)
-            < EP
+        ((((y1 - y0 as f32) * (y2 - y3 as f32)) as f64) < EP
             && ((((y3 - y0) as f32 * (y1 - y2)) as f64) < EP
                 || ((yb * yb) as f64) < (ya * yc) as f64 + EP))
     );
-    if xa == 0 as i32 as f32 && ya == 0 as i32 as f32
-    {
+    if xa == 0 as i32 as f32 && ya == 0 as i32 as f32 {
         sx = f64::floor(
-            ((3 as i32 as f32 * x1 - x0 as f32
-                + 1 as i32 as f32) / 2 as i32 as f32)
-                as f64,
+            ((3 as i32 as f32 * x1 - x0 as f32 + 1 as i32 as f32) / 2 as i32 as f32) as f64,
         ) as i32;
         sy = f64::floor(
-            ((3 as i32 as f32 * y1 - y0 as f32
-                + 1 as i32 as f32) / 2 as i32 as f32)
-                as f64,
+            ((3 as i32 as f32 * y1 - y0 as f32 + 1 as i32 as f32) / 2 as i32 as f32) as f64,
         ) as i32;
-        return plot_quad_bezier_seg(x0, y0, sx, sy, x3, y3);
+        return plot_quad_bezier_seg(x0, y0, sx, sy, x3, y3, set_pixel);
     }
-    x1 = (x1 - x0 as f32) * (x1 - x0 as f32)
-        + (y1 - y0 as f32) * (y1 - y0 as f32)
-        + 1 as i32 as f32;
-    x2 = (x2 - x3 as f32) * (x2 - x3 as f32)
-        + (y2 - y3 as f32) * (y2 - y3 as f32)
-        + 1 as i32 as f32;
+    x1 =
+        (x1 - x0 as f32) * (x1 - x0 as f32) + (y1 - y0 as f32) * (y1 - y0 as f32) + 1 as i32 as f32;
+    x2 =
+        (x2 - x3 as f32) * (x2 - x3 as f32) + (y2 - y3 as f32) * (y2 - y3 as f32) + 1 as i32 as f32;
     loop {
         ab = (xa * yb - xb * ya) as f64;
         ac = (xa * yc - xc * ya) as f64;
@@ -766,59 +689,42 @@ pub fn plot_rotated_ellipse_rect(
         f = (if ex > 0 as i32 as f64 {
             1 as i32 as f64
         } else {
-            f64::sqrt(
-                (1 as i32 as f32
-                    + 1024 as i32 as f32 / x1) as f64,
-            )
+            f64::sqrt((1 as i32 as f32 + 1024 as i32 as f32 / x1) as f64)
         }) as i32;
         ab *= f as f64;
         ac *= f as f64;
         bc *= f as f64;
         ex *= (f * f) as f64;
-        xy = 9 as i32 as f64 * (ab + ac + bc)
-            / 8 as i32 as f64;
+        xy = 9 as i32 as f64 * (ab + ac + bc) / 8 as i32 as f64;
         cb = (8 as i32 as f32 * (xa - ya)) as f64;
         dx = 27 as i32 as f64
-            * (8 as i32 as f64 * ab
-                * (yb * yb - ya * yc) as f64
-                + ex
-                    * (ya + 2 as i32 as f32 * yb + yc)
-                        as f64) / 64 as i32 as f64
+            * (8 as i32 as f64 * ab * (yb * yb - ya * yc) as f64
+                + ex * (ya + 2 as i32 as f32 * yb + yc) as f64)
+            / 64 as i32 as f64
             - (ya * ya) as f64 * (xy - ya as f64);
         dy = 27 as i32 as f64
-            * (8 as i32 as f64 * ab
-                * (xb * xb - xa * xc) as f64
-                - ex
-                    * (xa + 2 as i32 as f32 * xb + xc)
-                        as f64) / 64 as i32 as f64
+            * (8 as i32 as f64 * ab * (xb * xb - xa * xc) as f64
+                - ex * (xa + 2 as i32 as f32 * xb + xc) as f64)
+            / 64 as i32 as f64
             - (xa * xa) as f64 * (xy + xa as f64);
         xx = 3 as i32 as f64
-            * (3 as i32 as f64 * ab
-                * (3 as i32 as f32 * yb * yb - ya * ya
-                    - 2 as i32 as f32 * ya * yc) as f64
-                - ya as f64
-                    * (3 as i32 as f64 * ac
-                        * (ya + yb) as f64 + ya as f64 * cb))
+            * (3 as i32 as f64
+                * ab
+                * (3 as i32 as f32 * yb * yb - ya * ya - 2 as i32 as f32 * ya * yc) as f64
+                - ya as f64 * (3 as i32 as f64 * ac * (ya + yb) as f64 + ya as f64 * cb))
             / 4 as i32 as f64;
         yy = 3 as i32 as f64
-            * (3 as i32 as f64 * ab
-                * (3 as i32 as f32 * xb * xb - xa * xa
-                    - 2 as i32 as f32 * xa * xc) as f64
-                - xa as f64
-                    * (3 as i32 as f64 * ac
-                        * (xa + xb) as f64 + xa as f64 * cb))
+            * (3 as i32 as f64
+                * ab
+                * (3 as i32 as f32 * xb * xb - xa * xa - 2 as i32 as f32 * xa * xc) as f64
+                - xa as f64 * (3 as i32 as f64 * ac * (xa + xb) as f64 + xa as f64 * cb))
             / 4 as i32 as f64;
         xy = (xa * ya) as f64
-            * (6 as i32 as f64 * ab
-                + 6 as i32 as f64 * ac
-                - 3 as i32 as f64 * bc + cb);
+            * (6 as i32 as f64 * ab + 6 as i32 as f64 * ac - 3 as i32 as f64 * bc + cb);
         ac = (ya * ya) as f64;
         cb = (xa * xa) as f64;
         xy = 3 as i32 as f64
-            * (xy
-                + (9 as i32 * f) as f64
-                    * (cb * yb as f64 * yc as f64
-                        - (xb * xc) as f64 * ac)
+            * (xy + (9 as i32 * f) as f64 * (cb * yb as f64 * yc as f64 - (xb * xc) as f64 * ac)
                 - (18 as i32 as f32 * xb * yb) as f64 * ab)
             / 8 as i32 as f64;
         if ex < 0 as i32 as f64 {
@@ -841,7 +747,7 @@ pub fn plot_rotated_ellipse_rect(
         fy = f;
         fx = fy;
         's_201: while x0 != x3 && y0 != y3 {
-            setPixel(x0, y0);
+            set_pixel(x0, y0);
             loop {
                 if dx > *pxy || dy < *pxy {
                     break 's_201;
@@ -877,10 +783,7 @@ pub fn plot_rotated_ellipse_rect(
                 y0 += sy;
                 fy += f;
             }
-            if pxy == &mut xy as &mut f64
-                && dx < 0 as i32 as f64
-                && dy > 0 as i32 as f64
-            {
+            if pxy == &mut xy as &mut f64 && dx < 0 as i32 as f64 && dy > 0 as i32 as f64 {
                 pxy = &mut EP;
             }
         }
@@ -901,10 +804,10 @@ pub fn plot_rotated_ellipse_rect(
             break;
         }
     }
-    plot_line(x0, y0, x3, y3);
+    plot_line(x0, y0, x3, y3, set_pixel);
 }
 
-pub fn plotCubicBezier(
+pub unsafe fn plot_cubic_bezier(
     mut x0: i32,
     mut y0: i32,
     mut x1: i32,
@@ -913,6 +816,7 @@ pub fn plotCubicBezier(
     mut y2: i32,
     mut x3: i32,
     mut y3: i32,
+    mut set_pixel: impl FnMut(i32, i32),
 ) {
     let mut n: i32 = 0 as i32;
     let mut i: i32 = 0 as i32;
@@ -993,61 +897,37 @@ pub fn plotCubicBezier(
     i = 0 as i32;
     while i <= n {
         t2 = t[i as usize];
-        fx1 = ((t1
-            * (t1 * xb as f64
-                - (2 as i32 as i64 * xc) as f64)
-            - t2
-                * (t1
-                    * (t1 * xa as f64
-                        - (2 as i32 as i64 * xb) as f64)
-                    + xc as f64) + xd as f64)
-            / 8 as i32 as f64 - fx0 as f64)
-            as f32;
-        fy1 = ((t1
-            * (t1 * yb as f64
-                - (2 as i32 as i64 * yc) as f64)
-            - t2
-                * (t1
-                    * (t1 * ya as f64
-                        - (2 as i32 as i64 * yb) as f64)
-                    + yc as f64) + yd as f64)
-            / 8 as i32 as f64 - fy0 as f64)
-            as f32;
-        fx2 = ((t2
-            * (t2 * xb as f64
-                - (2 as i32 as i64 * xc) as f64)
-            - t1
-                * (t2
-                    * (t2 * xa as f64
-                        - (2 as i32 as i64 * xb) as f64)
-                    + xc as f64) + xd as f64)
-            / 8 as i32 as f64 - fx0 as f64)
-            as f32;
-        fy2 = ((t2
-            * (t2 * yb as f64
-                - (2 as i32 as i64 * yc) as f64)
-            - t1
-                * (t2
-                    * (t2 * ya as f64
-                        - (2 as i32 as i64 * yb) as f64)
-                    + yc as f64) + yd as f64)
-            / 8 as i32 as f64 - fy0 as f64)
-            as f32;
+        fx1 = ((t1 * (t1 * xb as f64 - (2 as i32 as i64 * xc) as f64)
+            - t2 * (t1 * (t1 * xa as f64 - (2 as i32 as i64 * xb) as f64) + xc as f64)
+            + xd as f64)
+            / 8 as i32 as f64
+            - fx0 as f64) as f32;
+        fy1 = ((t1 * (t1 * yb as f64 - (2 as i32 as i64 * yc) as f64)
+            - t2 * (t1 * (t1 * ya as f64 - (2 as i32 as i64 * yb) as f64) + yc as f64)
+            + yd as f64)
+            / 8 as i32 as f64
+            - fy0 as f64) as f32;
+        fx2 = ((t2 * (t2 * xb as f64 - (2 as i32 as i64 * xc) as f64)
+            - t1 * (t2 * (t2 * xa as f64 - (2 as i32 as i64 * xb) as f64) + xc as f64)
+            + xd as f64)
+            / 8 as i32 as f64
+            - fx0 as f64) as f32;
+        fy2 = ((t2 * (t2 * yb as f64 - (2 as i32 as i64 * yc) as f64)
+            - t1 * (t2 * (t2 * ya as f64 - (2 as i32 as i64 * yb) as f64) + yc as f64)
+            + yd as f64)
+            / 8 as i32 as f64
+            - fy0 as f64) as f32;
         fx3 = ((t2
-            * (t2
-                * ((3 as i32 as i64 * xb) as f64
-                    - t2 * xa as f64)
+            * (t2 * ((3 as i32 as i64 * xb) as f64 - t2 * xa as f64)
                 - (3 as i32 as i64 * xc) as f64)
-            + xd as f64) / 8 as i32 as f64)
-            as f32;
+            + xd as f64)
+            / 8 as i32 as f64) as f32;
         fx0 -= fx3;
         fy3 = ((t2
-            * (t2
-                * ((3 as i32 as i64 * yb) as f64
-                    - t2 * ya as f64)
+            * (t2 * ((3 as i32 as i64 * yb) as f64 - t2 * ya as f64)
                 - (3 as i32 as i64 * yc) as f64)
-            + yd as f64) / 8 as i32 as f64)
-            as f32;
+            + yd as f64)
+            / 8 as i32 as f64) as f32;
         fy0 -= fy3;
         x3 = f64::floor(fx3 as f64 + 0.5f64) as i32;
         y3 = f64::floor(fy3 as f64 + 0.5f64) as i32;
@@ -1062,7 +942,7 @@ pub fn plotCubicBezier(
             fy2 *= fy0;
         }
         if x0 != x3 || y0 != y3 {
-            plotCubicBezierSeg(
+            plot_cubic_bezier_seg(
                 x0,
                 y0,
                 x0 as f32 + fx1,
@@ -1071,6 +951,7 @@ pub fn plotCubicBezier(
                 y0 as f32 + fy2,
                 x3,
                 y3,
+                &mut set_pixel,
             );
         }
         x0 = x3;
@@ -1080,4 +961,203 @@ pub fn plotCubicBezier(
         t1 = t2;
         i += 1;
     }
-} */
+}
+
+pub unsafe fn plot_quad_spline(
+    mut n: i32,
+    mut x: *mut i32,
+    mut y: *mut i32,
+    mut set_pixel: impl FnMut(i32, i32),
+) {
+    let mut mi: f32 = 1 as i32 as f32;
+    let mut m: [f32; 6] = [0.; 6];
+    let mut i: i32 = 0;
+    let mut x0: i32 = 0;
+    let mut y0: i32 = 0;
+    let mut x1: i32 = 0;
+    let mut y1: i32 = 0;
+    let mut x2: i32 = *x.offset(n as isize);
+    let mut y2: i32 = *y.offset(n as isize);
+    assert!(n > 1 as i32);
+    x0 = 8 as i32 * *x.offset(1 as i32 as isize) - 2 as i32 * *x.offset(0 as i32 as isize);
+    *x.offset(1 as i32 as isize) = x0;
+    y0 = 8 as i32 * *y.offset(1 as i32 as isize) - 2 as i32 * *y.offset(0 as i32 as isize);
+    *y.offset(1 as i32 as isize) = y0;
+    i = 2 as i32;
+    while i < n {
+        if (i - 2 as i32) < 6 as i32 {
+            mi = (1.0f64 / (6.0f64 - mi as f64)) as f32;
+            m[(i - 2 as i32) as usize] = mi;
+        }
+        x0 = f64::floor(
+            ((8 as i32 * *x.offset(i as isize)) as f32 - x0 as f32 * mi) as f64 + 0.5f64,
+        ) as i32;
+        *x.offset(i as isize) = x0;
+        y0 = f64::floor(
+            ((8 as i32 * *y.offset(i as isize)) as f32 - y0 as f32 * mi) as f64 + 0.5f64,
+        ) as i32;
+        *y.offset(i as isize) = y0;
+        i += 1;
+    }
+    x1 = f64::floor((x0 - 2 as i32 * x2) as f64 / (5.0f64 - mi as f64) + 0.5f64) as i32;
+    y1 = f64::floor((y0 - 2 as i32 * y2) as f64 / (5.0f64 - mi as f64) + 0.5f64) as i32;
+    i = n - 2 as i32;
+    while i > 0 as i32 {
+        if i <= 6 as i32 {
+            mi = m[(i - 1 as i32) as usize];
+        }
+        x0 = f64::floor(((*x.offset(i as isize) - x1) as f32 * mi) as f64 + 0.5f64) as i32;
+        y0 = f64::floor(((*y.offset(i as isize) - y1) as f32 * mi) as f64 + 0.5f64) as i32;
+        plot_quad_bezier(
+            (x0 + x1) / 2 as i32,
+            (y0 + y1) / 2 as i32,
+            x1,
+            y1,
+            x2,
+            y2,
+            &mut set_pixel,
+        );
+        x2 = (x0 + x1) / 2 as i32;
+        x1 = x0;
+        y2 = (y0 + y1) / 2 as i32;
+        y1 = y0;
+        i -= 1;
+    }
+    plot_quad_bezier(
+        *x.offset(0 as i32 as isize),
+        *y.offset(0 as i32 as isize),
+        x1,
+        y1,
+        x2,
+        y2,
+        set_pixel,
+    );
+}
+
+pub unsafe fn plot_cubic_spline(
+    mut n: i32,
+    mut x: *mut i32,
+    mut y: *mut i32,
+    mut set_pixel: impl FnMut(i32, i32),
+) {
+    let mut mi: f32 = 0.25f64 as f32;
+    let mut m: [f32; 6] = [0.; 6];
+    let mut x3: i32 = *x.offset((n - 1 as i32) as isize);
+    let mut y3: i32 = *y.offset((n - 1 as i32) as isize);
+    let mut x4: i32 = *x.offset(n as isize);
+    let mut y4: i32 = *y.offset(n as isize);
+    let mut i: i32 = 0;
+    let mut x0: i32 = 0;
+    let mut y0: i32 = 0;
+    let mut x1: i32 = 0;
+    let mut y1: i32 = 0;
+    let mut x2: i32 = 0;
+    let mut y2: i32 = 0;
+    assert!(n > 2 as i32);
+    x0 = 12 as i32 * *x.offset(1 as i32 as isize) - 3 as i32 * *x.offset(0 as i32 as isize);
+    *x.offset(1 as i32 as isize) = x0;
+    y0 = 12 as i32 * *y.offset(1 as i32 as isize) - 3 as i32 * *y.offset(0 as i32 as isize);
+    *y.offset(1 as i32 as isize) = y0;
+    i = 2 as i32;
+    while i < n {
+        if (i - 2 as i32) < 6 as i32 {
+            mi = (0.25f64 / (2.0f64 - mi as f64)) as f32;
+            m[(i - 2 as i32) as usize] = mi;
+        }
+        x0 = f64::floor(
+            ((12 as i32 * *x.offset(i as isize)) as f32 - (2 as i32 * x0) as f32 * mi) as f64
+                + 0.5f64,
+        ) as i32;
+        *x.offset(i as isize) = x0;
+        y0 = f64::floor(
+            ((12 as i32 * *y.offset(i as isize)) as f32 - (2 as i32 * y0) as f32 * mi) as f64
+                + 0.5f64,
+        ) as i32;
+        *y.offset(i as isize) = y0;
+        i += 1;
+    }
+    x2 = f64::floor(
+        ((x0 - 3 as i32 * x4) as f32 / (7 as i32 as f32 - 4 as i32 as f32 * mi)) as f64 + 0.5f64,
+    ) as i32;
+    y2 = f64::floor(
+        ((y0 - 3 as i32 * y4) as f32 / (7 as i32 as f32 - 4 as i32 as f32 * mi)) as f64 + 0.5f64,
+    ) as i32;
+    plot_cubic_bezier(
+        x3,
+        y3,
+        (x2 + x4) / 2 as i32,
+        (y2 + y4) / 2 as i32,
+        x4,
+        y4,
+        x4,
+        y4,
+        &mut set_pixel,
+    );
+    if (n - 3 as i32) < 6 as i32 {
+        mi = m[(n - 3 as i32) as usize];
+    }
+    x1 = f64::floor(
+        ((*x.offset((n - 2 as i32) as isize) - 2 as i32 * x2) as f32 * mi) as f64 + 0.5f64,
+    ) as i32;
+    y1 = f64::floor(
+        ((*y.offset((n - 2 as i32) as isize) - 2 as i32 * y2) as f32 * mi) as f64 + 0.5f64,
+    ) as i32;
+    i = n - 3 as i32;
+    while i > 0 as i32 {
+        if i <= 6 as i32 {
+            mi = m[(i - 1 as i32) as usize];
+        }
+        x0 = f64::floor(((*x.offset(i as isize) - 2 as i32 * x1) as f32 * mi) as f64 + 0.5f64)
+            as i32;
+        y0 = f64::floor(((*y.offset(i as isize) - 2 as i32 * y1) as f32 * mi) as f64 + 0.5f64)
+            as i32;
+        x4 = f64::floor((x0 + 4 as i32 * x1 + x2 + 3 as i32) as f64 / 6.0f64) as i32;
+        y4 = f64::floor((y0 + 4 as i32 * y1 + y2 + 3 as i32) as f64 / 6.0f64) as i32;
+        plot_cubic_bezier(
+            x4,
+            y4,
+            f64::floor(((2 as i32 * x1 + x2) / 3 as i32) as f64 + 0.5f64) as i32,
+            f64::floor(((2 as i32 * y1 + y2) / 3 as i32) as f64 + 0.5f64) as i32,
+            f64::floor(((x1 + 2 as i32 * x2) / 3 as i32) as f64 + 0.5f64) as i32,
+            f64::floor(((y1 + 2 as i32 * y2) / 3 as i32) as f64 + 0.5f64) as i32,
+            x3,
+            y3,
+            &mut set_pixel,
+        );
+        x3 = x4;
+        y3 = y4;
+        x2 = x1;
+        y2 = y1;
+        x1 = x0;
+        y1 = y0;
+        i -= 1;
+    }
+    x0 = *x.offset(0 as i32 as isize);
+    x4 = f64::floor((3 as i32 * x0 + 7 as i32 * x1 + 2 as i32 * x2 + 6 as i32) as f64 / 12.0f64)
+        as i32;
+    y0 = *y.offset(0 as i32 as isize);
+    y4 = f64::floor((3 as i32 * y0 + 7 as i32 * y1 + 2 as i32 * y2 + 6 as i32) as f64 / 12.0f64)
+        as i32;
+    plot_cubic_bezier(
+        x4,
+        y4,
+        f64::floor(((2 as i32 * x1 + x2) / 3 as i32) as f64 + 0.5f64) as i32,
+        f64::floor(((2 as i32 * y1 + y2) / 3 as i32) as f64 + 0.5f64) as i32,
+        f64::floor(((x1 + 2 as i32 * x2) / 3 as i32) as f64 + 0.5f64) as i32,
+        f64::floor(((y1 + 2 as i32 * y2) / 3 as i32) as f64 + 0.5f64) as i32,
+        x3,
+        y3,
+        &mut set_pixel,
+    );
+    plot_cubic_bezier(
+        x0,
+        y0,
+        x0,
+        y0,
+        (x0 + x1) / 2 as i32,
+        (y0 + y1) / 2 as i32,
+        x4,
+        y4,
+        set_pixel,
+    );
+}
