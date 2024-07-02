@@ -1,5 +1,3 @@
-use crate::{plot_line, plot_quad_bezier_seg};
-
 /*
 functions adapated and taken from:
 
@@ -25,6 +23,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+use crate::{plot_line, plot_quad_bezier_seg};
 
 unsafe fn plot_cubic_bezier_seg(
     mut x0: i32,
