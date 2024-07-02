@@ -1,38 +1,30 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals, unused_assignments, unused_mut)]
-#![register_tool(c2rust)]
-#![feature(register_tool)]
-extern "C" {
-    fn abs(_: libc::c_int) -> libc::c_int;
-    fn fabs(_: libc::c_double) -> libc::c_double;
-    fn floor(_: libc::c_double) -> libc::c_double;
-    fn sqrt(_: libc::c_double) -> libc::c_double;
-    fn sin(_: libc::c_double) -> libc::c_double;
-    fn cos(_: libc::c_double) -> libc::c_double;
-}
-#[no_mangle]
-pub unsafe extern "C" fn plotLine(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
+pub fn setPixel(x: i32, y: i32) {}
+pub fn setPixel3D(x: i32, y: i32, z: i32) {}
+
+
+pub fn plot_line(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
 ) {
-    let mut dx: libc::c_int = abs(x1 - x0);
-    let mut sx: libc::c_int = if x0 < x1 {
-        1 as libc::c_int
+    let mut dx: i32 = i32::abs(x1 - x0);
+    let mut sx: i32 = if x0 < x1 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut dy: libc::c_int = -abs(y1 - y0);
-    let mut sy: libc::c_int = if y0 < y1 {
-        1 as libc::c_int
+    let mut dy: i32 = -i32::abs(y1 - y0);
+    let mut sy: i32 = if y0 < y1 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut err: libc::c_int = dx + dy;
-    let mut e2: libc::c_int = 0;
+    let mut err: i32 = dx + dy;
+    let mut e2: i32 = 0;
     loop {
         setPixel(x0, y0);
-        e2 = 2 as libc::c_int * err;
+        e2 = 2 as i32 * err;
         if e2 >= dy {
             if x0 == x1 {
                 break;
@@ -50,105 +42,105 @@ pub unsafe extern "C" fn plotLine(
         y0 += sy;
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotLine3d(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut z0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
-    mut z1: libc::c_int,
+
+pub fn plot_line_3d(
+    mut x0: i32,
+    mut y0: i32,
+    mut z0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut z1: i32,
 ) {
-    let mut dx: libc::c_int = abs(x1 - x0);
-    let mut sx: libc::c_int = if x0 < x1 {
-        1 as libc::c_int
+    let mut dx: i32 = i32::abs(x1 - x0);
+    let mut sx: i32 = if x0 < x1 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut dy: libc::c_int = abs(y1 - y0);
-    let mut sy: libc::c_int = if y0 < y1 {
-        1 as libc::c_int
+    let mut dy: i32 = i32::abs(y1 - y0);
+    let mut sy: i32 = if y0 < y1 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut dz: libc::c_int = abs(z1 - z0);
-    let mut sz: libc::c_int = if z0 < z1 {
-        1 as libc::c_int
+    let mut dz: i32 = i32::abs(z1 - z0);
+    let mut sz: i32 = if z0 < z1 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut dm: libc::c_int = if dx > dy && dx > dz {
+    let mut dm: i32 = if dx > dy && dx > dz {
         dx
     } else if dy > dz {
         dy
     } else {
         dz
     };
-    let mut i: libc::c_int = dm;
-    z1 = dm / 2 as libc::c_int;
+    let mut i: i32 = dm;
+    z1 = dm / 2 as i32;
     y1 = z1;
     x1 = y1;
     loop {
-        setPixel(x0, y0, z0);
+        setPixel3D(x0, y0, z0);
         let fresh0 = i;
         i = i - 1;
-        if fresh0 == 0 as libc::c_int {
+        if fresh0 == 0 as i32 {
             break;
         }
         x1 -= dx;
-        if x1 < 0 as libc::c_int {
+        if x1 < 0 as i32 {
             x1 += dm;
             x0 += sx;
         }
         y1 -= dy;
-        if y1 < 0 as libc::c_int {
+        if y1 < 0 as i32 {
             y1 += dm;
             y0 += sy;
         }
         z1 -= dz;
-        if z1 < 0 as libc::c_int {
+        if z1 < 0 as i32 {
             z1 += dm;
             z0 += sz;
         }
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotEllipse(
-    mut xm: libc::c_int,
-    mut ym: libc::c_int,
-    mut a: libc::c_int,
-    mut b: libc::c_int,
+
+pub fn plot_ellipse(
+    mut xm: i32,
+    mut ym: i32,
+    mut a: i32,
+    mut b: i32,
 ) {
-    let mut x: libc::c_int = -a;
-    let mut y: libc::c_int = 0 as libc::c_int;
-    let mut e2: libc::c_long = b as libc::c_long * b as libc::c_long;
-    let mut err: libc::c_long = x as libc::c_long
-        * (2 as libc::c_int as libc::c_long * e2 + x as libc::c_long) + e2;
+    let mut x: i32 = -a;
+    let mut y: i32 = 0 as i32;
+    let mut e2: i64 = b as i64 * b as i64;
+    let mut err: i64 = x as i64
+        * (2 as i32 as i64 * e2 + x as i64) + e2;
     loop {
         setPixel(xm - x, ym + y);
         setPixel(xm + x, ym + y);
         setPixel(xm + x, ym - y);
         setPixel(xm - x, ym - y);
-        e2 = 2 as libc::c_int as libc::c_long * err;
+        e2 = 2 as i32 as i64 * err;
         if e2
-            >= (x * 2 as libc::c_int + 1 as libc::c_int) as libc::c_long
-                * b as libc::c_long * b as libc::c_long
+            >= (x * 2 as i32 + 1 as i32) as i64
+                * b as i64 * b as i64
         {
             x += 1;
             err
-                += (x * 2 as libc::c_int + 1 as libc::c_int) as libc::c_long
-                    * b as libc::c_long * b as libc::c_long;
+                += (x * 2 as i32 + 1 as i32) as i64
+                    * b as i64 * b as i64;
         }
         if e2
-            <= (y * 2 as libc::c_int + 1 as libc::c_int) as libc::c_long
-                * a as libc::c_long * a as libc::c_long
+            <= (y * 2 as i32 + 1 as i32) as i64
+                * a as i64 * a as i64
         {
             y += 1;
             err
-                += (y * 2 as libc::c_int + 1 as libc::c_int) as libc::c_long
-                    * a as libc::c_long * a as libc::c_long;
+                += (y * 2 as i32 + 1 as i32) as i64
+                    * a as i64 * a as i64;
         }
-        if !(x <= 0 as libc::c_int) {
+        if !(x <= 0 as i32) {
             break;
         }
     }
@@ -162,63 +154,63 @@ pub unsafe extern "C" fn plotEllipse(
         setPixel(xm, ym - y);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotOptimizedEllipse(
-    mut xm: libc::c_int,
-    mut ym: libc::c_int,
-    mut a: libc::c_int,
-    mut b: libc::c_int,
+
+pub fn plot_optimized_ellipse(
+    mut xm: i32,
+    mut ym: i32,
+    mut a: i32,
+    mut b: i32,
 ) {
-    let mut x: libc::c_long = -a as libc::c_long;
-    let mut y: libc::c_long = 0 as libc::c_int as libc::c_long;
-    let mut e2: libc::c_long = b as libc::c_long;
-    let mut dx: libc::c_long = (1 as libc::c_int as libc::c_long
-        + 2 as libc::c_int as libc::c_long * x) * e2 * e2;
-    let mut dy: libc::c_long = x * x;
-    let mut err: libc::c_long = dx + dy;
+    let mut x: i64 = -a as i64;
+    let mut y: i64 = 0 as i32 as i64;
+    let mut e2: i64 = b as i64;
+    let mut dx: i64 = (1 as i32 as i64
+        + 2 as i32 as i64 * x) * e2 * e2;
+    let mut dy: i64 = x * x;
+    let mut err: i64 = dx + dy;
     loop {
-        setPixel(xm as libc::c_long - x, ym as libc::c_long + y);
-        setPixel(xm as libc::c_long + x, ym as libc::c_long + y);
-        setPixel(xm as libc::c_long + x, ym as libc::c_long - y);
-        setPixel(xm as libc::c_long - x, ym as libc::c_long - y);
-        e2 = 2 as libc::c_int as libc::c_long * err;
+        setPixel(xm - x as i32, ym + y as i32);
+        setPixel(xm + x as i32, ym + y as i32);
+        setPixel(xm + x as i32, ym - y as i32);
+        setPixel(xm - x as i32, ym - y as i32);
+        e2 = 2 as i32 as i64 * err;
         if e2 >= dx {
             x += 1;
             dx
-                += 2 as libc::c_int as libc::c_long * b as libc::c_long
-                    * b as libc::c_long;
+                += 2 as i32 as i64 * b as i64
+                    * b as i64;
             err += dx;
         }
         if e2 <= dy {
             y += 1;
             dy
-                += 2 as libc::c_int as libc::c_long * a as libc::c_long
-                    * a as libc::c_long;
+                += 2 as i32 as i64 * a as i64
+                    * a as i64;
             err += dy;
         }
-        if !(x <= 0 as libc::c_int as libc::c_long) {
+        if !(x <= 0 as i32 as i64) {
             break;
         }
     }
     loop {
         let fresh2 = y;
         y = y + 1;
-        if !(fresh2 < b as libc::c_long) {
+        if !(fresh2 < b as i64) {
             break;
         }
-        setPixel(xm, ym as libc::c_long + y);
-        setPixel(xm, ym as libc::c_long - y);
+        setPixel(xm, ym + y as i32);
+        setPixel(xm, ym - y as i32);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotCircle(
-    mut xm: libc::c_int,
-    mut ym: libc::c_int,
-    mut r: libc::c_int,
+
+pub fn plotCircle(
+    mut xm: i32,
+    mut ym: i32,
+    mut r: i32,
 ) {
-    let mut x: libc::c_int = -r;
-    let mut y: libc::c_int = 0 as libc::c_int;
-    let mut err: libc::c_int = 2 as libc::c_int - 2 as libc::c_int * r;
+    let mut x: i32 = -r;
+    let mut y: i32 = 0 as i32;
+    let mut err: i32 = 2 as i32 - 2 as i32 * r;
     loop {
         setPixel(xm - x, ym + y);
         setPixel(xm - y, ym - x);
@@ -227,104 +219,103 @@ pub unsafe extern "C" fn plotCircle(
         r = err;
         if r <= y {
             y += 1;
-            err += y * 2 as libc::c_int + 1 as libc::c_int;
+            err += y * 2 as i32 + 1 as i32;
         }
         if r > x || err > y {
             x += 1;
-            err += x * 2 as libc::c_int + 1 as libc::c_int;
+            err += x * 2 as i32 + 1 as i32;
         }
-        if !(x < 0 as libc::c_int) {
+        if !(x < 0 as i32) {
             break;
         }
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotEllipseRect(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
+
+pub fn plot_ellipse_rect(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
 ) {
-    let mut a: libc::c_long = abs(x1 - x0) as libc::c_long;
-    let mut b: libc::c_long = abs(y1 - y0) as libc::c_long;
-    let mut b1: libc::c_long = b & 1 as libc::c_int as libc::c_long;
-    let mut dx: libc::c_double = 4 as libc::c_int as libc::c_double
-        * (1.0f64 - a as libc::c_double) * b as libc::c_double * b as libc::c_double;
-    let mut dy: libc::c_double = (4 as libc::c_int as libc::c_long
-        * (b1 + 1 as libc::c_int as libc::c_long) * a * a) as libc::c_double;
-    let mut err: libc::c_double = dx + dy + (b1 * a * a) as libc::c_double;
-    let mut e2: libc::c_double = 0.;
+    let mut a: i64 = i32::abs(x1 - x0) as i64;
+    let mut b: i64 = i32::abs(y1 - y0) as i64;
+    let mut b1: i64 = b & 1 as i32 as i64;
+    let mut dx: f64 = 4 as i32 as f64
+        * (1.0f64 - a as f64) * b as f64 * b as f64;
+    let mut dy: f64 = (4 as i32 as i64
+        * (b1 + 1 as i32 as i64) * a * a) as f64;
+    let mut err: f64 = dx + dy + (b1 * a * a) as f64;
+    let mut e2: f64 = 0.;
     if x0 > x1 {
         x0 = x1;
-        x1 = (x1 as libc::c_long + a) as libc::c_int;
+        x1 = (x1 as i64 + a) as i32;
     }
     if y0 > y1 {
         y0 = y1;
     }
-    y0 = (y0 as libc::c_long
-        + (b + 1 as libc::c_int as libc::c_long) / 2 as libc::c_int as libc::c_long)
-        as libc::c_int;
-    y1 = (y0 as libc::c_long - b1) as libc::c_int;
-    a = 8 as libc::c_int as libc::c_long * a * a;
-    b1 = 8 as libc::c_int as libc::c_long * b * b;
+    y0 = (y0 as i64
+        + (b + 1 as i32 as i64) / 2 as i32 as i64)
+        as i32;
+    y1 = (y0 as i64 - b1) as i32;
+    a = 8 as i32 as i64 * a * a;
+    b1 = 8 as i32 as i64 * b * b;
     loop {
         setPixel(x1, y0);
         setPixel(x0, y0);
         setPixel(x0, y1);
         setPixel(x1, y1);
-        e2 = 2 as libc::c_int as libc::c_double * err;
+        e2 = 2 as i32 as f64 * err;
         if e2 <= dy {
             y0 += 1;
             y1 -= 1;
-            dy += a as libc::c_double;
+            dy += a as f64;
             err += dy;
         }
-        if e2 >= dx || 2 as libc::c_int as libc::c_double * err > dy {
+        if e2 >= dx || 2 as i32 as f64 * err > dy {
             x0 += 1;
             x1 -= 1;
-            dx += b1 as libc::c_double;
+            dx += b1 as f64;
             err += dx;
         }
         if !(x0 <= x1) {
             break;
         }
     }
-    while (y0 - y1) as libc::c_long <= b {
-        setPixel(x0 - 1 as libc::c_int, y0);
+    while (y0 - y1) as i64 <= b {
+        setPixel(x0 - 1 as i32, y0);
         let fresh3 = y0;
         y0 = y0 + 1;
-        setPixel(x1 + 1 as libc::c_int, fresh3);
-        setPixel(x0 - 1 as libc::c_int, y1);
+        setPixel(x1 + 1 as i32, fresh3);
+        setPixel(x0 - 1 as i32, y1);
         let fresh4 = y1;
         y1 = y1 - 1;
-        setPixel(x1 + 1 as libc::c_int, fresh4);
+        setPixel(x1 + 1 as i32, fresh4);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotQuadBezierSeg(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
-    mut x2: libc::c_int,
-    mut y2: libc::c_int,
+
+pub fn plot_quad_bezier_seg(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut x2: i32,
+    mut y2: i32,
 ) {
-    let mut sx: libc::c_int = x2 - x1;
-    let mut sy: libc::c_int = y2 - y1;
-    let mut xx: libc::c_long = (x0 - x1) as libc::c_long;
-    let mut yy: libc::c_long = (y0 - y1) as libc::c_long;
-    let mut xy: libc::c_long = 0;
-    let mut dx: libc::c_double = 0.;
-    let mut dy: libc::c_double = 0.;
-    let mut err: libc::c_double = 0.;
-    let mut cur: libc::c_double = (xx * sy as libc::c_long - yy * sx as libc::c_long)
-        as libc::c_double;
-    assert(
-        (xx * sx as libc::c_long <= 0 as libc::c_int as libc::c_long
-            && yy * sy as libc::c_long <= 0 as libc::c_int as libc::c_long)
-            as libc::c_int,
+    let mut sx: i32 = x2 - x1;
+    let mut sy: i32 = y2 - y1;
+    let mut xx: i64 = (x0 - x1) as i64;
+    let mut yy: i64 = (y0 - y1) as i64;
+    let mut xy: i64 = 0;
+    let mut dx: f64 = 0.;
+    let mut dy: f64 = 0.;
+    let mut err: f64 = 0.;
+    let mut cur: f64 = (xx * sy as i64 - yy * sx as i64)
+        as f64;
+    assert!(
+        (xx * sx as i64 <= 0 as i32 as i64
+            && yy * sy as i64 <= 0 as i32 as i64)
     );
-    if sx as libc::c_long * sx as libc::c_long + sy as libc::c_long * sy as libc::c_long
+    if sx as i64 * sx as i64 + sy as i64 * sy as i64
         > xx * xx + yy * yy
     {
         x2 = x0;
@@ -333,79 +324,79 @@ pub unsafe extern "C" fn plotQuadBezierSeg(
         y0 = sy + y1;
         cur = -cur;
     }
-    if cur != 0 as libc::c_int as libc::c_double {
-        xx += sx as libc::c_long;
-        sx = if x0 < x2 { 1 as libc::c_int } else { -(1 as libc::c_int) };
-        xx *= sx as libc::c_long;
-        yy += sy as libc::c_long;
-        sy = if y0 < y2 { 1 as libc::c_int } else { -(1 as libc::c_int) };
-        yy *= sy as libc::c_long;
-        xy = 2 as libc::c_int as libc::c_long * xx * yy;
+    if cur != 0 as i32 as f64 {
+        xx += sx as i64;
+        sx = if x0 < x2 { 1 as i32 } else { -(1 as i32) };
+        xx *= sx as i64;
+        yy += sy as i64;
+        sy = if y0 < y2 { 1 as i32 } else { -(1 as i32) };
+        yy *= sy as i64;
+        xy = 2 as i32 as i64 * xx * yy;
         xx *= xx;
         yy *= yy;
-        if (cur * sx as libc::c_double * sy as libc::c_double)
-            < 0 as libc::c_int as libc::c_double
+        if (cur * sx as f64 * sy as f64)
+            < 0 as i32 as f64
         {
             xx = -xx;
             yy = -yy;
             xy = -xy;
             cur = -cur;
         }
-        dx = 4.0f64 * sy as libc::c_double * cur * (x1 - x0) as libc::c_double
-            + xx as libc::c_double - xy as libc::c_double;
-        dy = 4.0f64 * sx as libc::c_double * cur * (y0 - y1) as libc::c_double
-            + yy as libc::c_double - xy as libc::c_double;
+        dx = 4.0f64 * sy as f64 * cur * (x1 - x0) as f64
+            + xx as f64 - xy as f64;
+        dy = 4.0f64 * sx as f64 * cur * (y0 - y1) as f64
+            + yy as f64 - xy as f64;
         xx += xx;
         yy += yy;
-        err = dx + dy + xy as libc::c_double;
+        err = dx + dy + xy as f64;
         loop {
             setPixel(x0, y0);
             if x0 == x2 && y0 == y2 {
                 return;
             }
-            y1 = (2 as libc::c_int as libc::c_double * err < dx) as libc::c_int;
-            if 2 as libc::c_int as libc::c_double * err > dy {
+            y1 = (2 as i32 as f64 * err < dx) as i32;
+            if 2 as i32 as f64 * err > dy {
                 x0 += sx;
-                dx -= xy as libc::c_double;
-                dy += yy as libc::c_double;
+                dx -= xy as f64;
+                dy += yy as f64;
                 err += dy;
             }
             if y1 != 0 {
                 y0 += sy;
-                dy -= xy as libc::c_double;
-                dx += xx as libc::c_double;
+                dy -= xy as f64;
+                dx += xx as f64;
                 err += dx;
             }
-            if !(dy < 0 as libc::c_int as libc::c_double
-                && dx > 0 as libc::c_int as libc::c_double)
+            if !(dy < 0 as i32 as f64
+                && dx > 0 as i32 as f64)
             {
                 break;
             }
         }
     }
-    plotLine(x0, y0, x2, y2);
+    plot_line(x0, y0, x2, y2);
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotQuadBezier(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
-    mut x2: libc::c_int,
-    mut y2: libc::c_int,
+
+pub fn plot_quad_bezier(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut x2: i32,
+    mut y2: i32,
 ) {
-    let mut x: libc::c_int = x0 - x1;
-    let mut y: libc::c_int = y0 - y1;
-    let mut t: libc::c_double = (x0 - 2 as libc::c_int * x1 + x2) as libc::c_double;
-    let mut r: libc::c_double = 0.;
-    if x as libc::c_long * (x2 - x1) as libc::c_long > 0 as libc::c_int as libc::c_long {
-        if y as libc::c_long * (y2 - y1) as libc::c_long
-            > 0 as libc::c_int as libc::c_long
+    let mut x: i32 = x0 - x1;
+    let mut y: i32 = y0 - y1;
+    let mut t: f64 = (x0 - 2 as i32 * x1 + x2) as f64;
+    let mut r: f64 = 0.;
+    if x as i64 * (x2 - x1) as i64 > 0 as i32 as i64 {
+        if y as i64 * (y2 - y1) as i64
+            > 0 as i32 as i64
         {
-            if fabs(
-                (y0 - 2 as libc::c_int * y1 + y2) as libc::c_double / t
-                    * x as libc::c_double,
-            ) > abs(y) as libc::c_double
+            if f64::abs(
+                (y0 - 2 as i32 * y1 + y2) as f64 / t
+                    * x as f64,
+            ) > i32::abs(y) as f64
             {
                 x0 = x2;
                 x2 = x + x1;
@@ -413,145 +404,144 @@ pub unsafe extern "C" fn plotQuadBezier(
                 y2 = y + y1;
             }
         }
-        t = (x0 - x1) as libc::c_double / t;
-        r = (1 as libc::c_int as libc::c_double - t)
-            * ((1 as libc::c_int as libc::c_double - t) * y0 as libc::c_double
-                + 2.0f64 * t * y1 as libc::c_double) + t * t * y2 as libc::c_double;
-        t = (x0 * x2 - x1 * x1) as libc::c_double * t / (x0 - x1) as libc::c_double;
-        x = floor(t + 0.5f64) as libc::c_int;
-        y = floor(r + 0.5f64) as libc::c_int;
-        r = (y1 - y0) as libc::c_double * (t - x0 as libc::c_double)
-            / (x1 - x0) as libc::c_double + y0 as libc::c_double;
-        plotQuadBezierSeg(x0, y0, x, floor(r + 0.5f64) as libc::c_int, x, y);
-        r = (y1 - y2) as libc::c_double * (t - x2 as libc::c_double)
-            / (x1 - x2) as libc::c_double + y2 as libc::c_double;
+        t = (x0 - x1) as f64 / t;
+        r = (1 as i32 as f64 - t)
+            * ((1 as i32 as f64 - t) * y0 as f64
+                + 2.0f64 * t * y1 as f64) + t * t * y2 as f64;
+        t = (x0 * x2 - x1 * x1) as f64 * t / (x0 - x1) as f64;
+        x = f64::floor(t + 0.5f64) as i32;
+        y = f64::floor(r + 0.5f64) as i32;
+        r = (y1 - y0) as f64 * (t - x0 as f64)
+            / (x1 - x0) as f64 + y0 as f64;
+        plot_quad_bezier_seg(x0, y0, x, f64::floor(r + 0.5f64) as i32, x, y);
+        r = (y1 - y2) as f64 * (t - x2 as f64)
+            / (x1 - x2) as f64 + y2 as f64;
         x1 = x;
         x0 = x1;
         y0 = y;
-        y1 = floor(r + 0.5f64) as libc::c_int;
+        y1 = f64::floor(r + 0.5f64) as i32;
     }
-    if (y0 - y1) as libc::c_long * (y2 - y1) as libc::c_long
-        > 0 as libc::c_int as libc::c_long
+    if (y0 - y1) as i64 * (y2 - y1) as i64
+        > 0 as i32 as i64
     {
-        t = (y0 - 2 as libc::c_int * y1 + y2) as libc::c_double;
-        t = (y0 - y1) as libc::c_double / t;
-        r = (1 as libc::c_int as libc::c_double - t)
-            * ((1 as libc::c_int as libc::c_double - t) * x0 as libc::c_double
-                + 2.0f64 * t * x1 as libc::c_double) + t * t * x2 as libc::c_double;
-        t = (y0 * y2 - y1 * y1) as libc::c_double * t / (y0 - y1) as libc::c_double;
-        x = floor(r + 0.5f64) as libc::c_int;
-        y = floor(t + 0.5f64) as libc::c_int;
-        r = (x1 - x0) as libc::c_double * (t - y0 as libc::c_double)
-            / (y1 - y0) as libc::c_double + x0 as libc::c_double;
-        plotQuadBezierSeg(x0, y0, floor(r + 0.5f64) as libc::c_int, y, x, y);
-        r = (x1 - x2) as libc::c_double * (t - y2 as libc::c_double)
-            / (y1 - y2) as libc::c_double + x2 as libc::c_double;
+        t = (y0 - 2 as i32 * y1 + y2) as f64;
+        t = (y0 - y1) as f64 / t;
+        r = (1 as i32 as f64 - t)
+            * ((1 as i32 as f64 - t) * x0 as f64
+                + 2.0f64 * t * x1 as f64) + t * t * x2 as f64;
+        t = (y0 * y2 - y1 * y1) as f64 * t / (y0 - y1) as f64;
+        x = f64::floor(r + 0.5f64) as i32;
+        y = f64::floor(t + 0.5f64) as i32;
+        r = (x1 - x0) as f64 * (t - y0 as f64)
+            / (y1 - y0) as f64 + x0 as f64;
+        plot_quad_bezier_seg(x0, y0, f64::floor(r + 0.5f64) as i32, y, x, y);
+        r = (x1 - x2) as f64 * (t - y2 as f64)
+            / (y1 - y2) as f64 + x2 as f64;
         x0 = x;
-        x1 = floor(r + 0.5f64) as libc::c_int;
+        x1 = f64::floor(r + 0.5f64) as i32;
         y1 = y;
         y0 = y1;
     }
-    plotQuadBezierSeg(x0, y0, x1, y1, x2, y2);
+    plot_quad_bezier_seg(x0, y0, x1, y1, x2, y2);
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotQuadRationalBezierSeg(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
-    mut x2: libc::c_int,
-    mut y2: libc::c_int,
-    mut w: libc::c_float,
+
+pub fn plot_quad_rational_bezier_seg(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut x2: i32,
+    mut y2: i32,
+    mut w: f32,
 ) {
-    let mut sx: libc::c_int = x2 - x1;
-    let mut sy: libc::c_int = y2 - y1;
-    let mut dx: libc::c_double = (x0 - x2) as libc::c_double;
-    let mut dy: libc::c_double = (y0 - y2) as libc::c_double;
-    let mut xx: libc::c_double = (x0 - x1) as libc::c_double;
-    let mut yy: libc::c_double = (y0 - y1) as libc::c_double;
-    let mut xy: libc::c_double = xx * sy as libc::c_double + yy * sx as libc::c_double;
-    let mut cur: libc::c_double = xx * sy as libc::c_double - yy * sx as libc::c_double;
-    let mut err: libc::c_double = 0.;
-    assert(
-        (xx * sx as libc::c_double <= 0.0f64 && yy * sy as libc::c_double <= 0.0f64)
-            as libc::c_int,
+    let mut sx: i32 = x2 - x1;
+    let mut sy: i32 = y2 - y1;
+    let mut dx: f64 = (x0 - x2) as f64;
+    let mut dy: f64 = (y0 - y2) as f64;
+    let mut xx: f64 = (x0 - x1) as f64;
+    let mut yy: f64 = (y0 - y1) as f64;
+    let mut xy: f64 = xx * sy as f64 + yy * sx as f64;
+    let mut cur: f64 = xx * sy as f64 - yy * sx as f64;
+    let mut err: f64 = 0.;
+    assert!(
+        xx * sx as f64 <= 0.0f64 && yy * sy as f64 <= 0.0f64
     );
-    if cur != 0.0f64 && w as libc::c_double > 0.0f64 {
-        if (sx as libc::c_long * sx as libc::c_long
-            + sy as libc::c_long * sy as libc::c_long) as libc::c_double
+    if cur != 0.0f64 && w as f64 > 0.0f64 {
+        if (sx as i64 * sx as i64
+            + sy as i64 * sy as i64) as f64
             > xx * xx + yy * yy
         {
             x2 = x0;
-            x0 = (x0 as libc::c_double - dx) as libc::c_int;
+            x0 = (x0 as f64 - dx) as i32;
             y2 = y0;
-            y0 = (y0 as libc::c_double - dy) as libc::c_int;
+            y0 = (y0 as f64 - dy) as i32;
             cur = -cur;
         }
         xx = 2.0f64
-            * (4.0f64 * w as libc::c_double * sx as libc::c_double * xx + dx * dx);
+            * (4.0f64 * w as f64 * sx as f64 * xx + dx * dx);
         yy = 2.0f64
-            * (4.0f64 * w as libc::c_double * sy as libc::c_double * yy + dy * dy);
-        sx = if x0 < x2 { 1 as libc::c_int } else { -(1 as libc::c_int) };
-        sy = if y0 < y2 { 1 as libc::c_int } else { -(1 as libc::c_int) };
-        xy = -2.0f64 * sx as libc::c_double * sy as libc::c_double
-            * (2.0f64 * w as libc::c_double * xy + dx * dy);
-        if (cur * sx as libc::c_double * sy as libc::c_double) < 0.0f64 {
+            * (4.0f64 * w as f64 * sy as f64 * yy + dy * dy);
+        sx = if x0 < x2 { 1 as i32 } else { -(1 as i32) };
+        sy = if y0 < y2 { 1 as i32 } else { -(1 as i32) };
+        xy = -2.0f64 * sx as f64 * sy as f64
+            * (2.0f64 * w as f64 * xy + dx * dy);
+        if (cur * sx as f64 * sy as f64) < 0.0f64 {
             xx = -xx;
             yy = -yy;
             xy = -xy;
             cur = -cur;
         }
-        dx = 4.0f64 * w as libc::c_double * (x1 - x0) as libc::c_double
-            * sy as libc::c_double * cur + xx / 2.0f64 + xy;
-        dy = 4.0f64 * w as libc::c_double * (y0 - y1) as libc::c_double
-            * sx as libc::c_double * cur + yy / 2.0f64 + xy;
-        if (w as libc::c_double) < 0.5f64 && (dy > xy || dx < xy) {
-            cur = (w as libc::c_double + 1.0f64) / 2.0f64;
-            w = sqrt(w as libc::c_double) as libc::c_float;
-            xy = 1.0f64 / (w as libc::c_double + 1.0f64);
-            sx = floor(
-                (x0 as libc::c_double
-                    + 2.0f64 * w as libc::c_double * x1 as libc::c_double
-                    + x2 as libc::c_double) * xy / 2.0f64 + 0.5f64,
-            ) as libc::c_int;
-            sy = floor(
-                (y0 as libc::c_double
-                    + 2.0f64 * w as libc::c_double * y1 as libc::c_double
-                    + y2 as libc::c_double) * xy / 2.0f64 + 0.5f64,
-            ) as libc::c_int;
-            dx = floor(
-                (w * x1 as libc::c_float + x0 as libc::c_float) as libc::c_double * xy
+        dx = 4.0f64 * w as f64 * (x1 - x0) as f64
+            * sy as f64 * cur + xx / 2.0f64 + xy;
+        dy = 4.0f64 * w as f64 * (y0 - y1) as f64
+            * sx as f64 * cur + yy / 2.0f64 + xy;
+        if (w as f64) < 0.5f64 && (dy > xy || dx < xy) {
+            cur = (w as f64 + 1.0f64) / 2.0f64;
+            w = (w as f64).sqrt() as f32;
+            xy = 1.0f64 / (w as f64 + 1.0f64);
+            sx = f64::floor(
+                (x0 as f64
+                    + 2.0f64 * w as f64 * x1 as f64
+                    + x2 as f64) * xy / 2.0f64 + 0.5f64,
+            ) as i32;
+            sy = f64::floor(
+                (y0 as f64
+                    + 2.0f64 * w as f64 * y1 as f64
+                    + y2 as f64) * xy / 2.0f64 + 0.5f64,
+            ) as i32;
+            dx = f64::floor(
+                (w * x1 as f32 + x0 as f32) as f64 * xy
                     + 0.5f64,
             );
-            dy = floor(
-                (y1 as libc::c_float * w + y0 as libc::c_float) as libc::c_double * xy
+            dy = f64::floor(
+                (y1 as f32 * w + y0 as f32) as f64 * xy
                     + 0.5f64,
             );
-            plotQuadRationalBezierSeg(
+            plot_quad_rational_bezier_seg(
                 x0,
                 y0,
-                dx as libc::c_int,
-                dy as libc::c_int,
+                dx as i32,
+                dy as i32,
                 sx,
                 sy,
-                cur as libc::c_float,
+                cur as f32,
             );
-            dx = floor(
-                (w * x1 as libc::c_float + x2 as libc::c_float) as libc::c_double * xy
+            dx = f64::floor(
+                (w * x1 as f32 + x2 as f32) as f64 * xy
                     + 0.5f64,
             );
-            dy = floor(
-                (y1 as libc::c_float * w + y2 as libc::c_float) as libc::c_double * xy
+            dy = f64::floor(
+                (y1 as f32 * w + y2 as f32) as f64 * xy
                     + 0.5f64,
             );
-            plotQuadRationalBezierSeg(
+            plot_quad_rational_bezier_seg(
                 sx,
                 sy,
-                dx as libc::c_int,
-                dy as libc::c_int,
+                dx as i32,
+                dy as i32,
                 x2,
                 y2,
-                cur as libc::c_float,
+                cur as f32,
             );
             return;
         }
@@ -561,15 +551,15 @@ pub unsafe extern "C" fn plotQuadRationalBezierSeg(
             if x0 == x2 && y0 == y2 {
                 return;
             }
-            x1 = (2 as libc::c_int as libc::c_double * err > dy) as libc::c_int;
-            y1 = (2 as libc::c_int as libc::c_double * (err + yy) < -dy) as libc::c_int;
-            if 2 as libc::c_int as libc::c_double * err < dx || y1 != 0 {
+            x1 = (2 as i32 as f64 * err > dy) as i32;
+            y1 = (2 as i32 as f64 * (err + yy) < -dy) as i32;
+            if 2 as i32 as f64 * err < dx || y1 != 0 {
                 y0 += sy;
                 dy += xy;
                 dx += xx;
                 err += dx;
             }
-            if 2 as libc::c_int as libc::c_double * err > dx || x1 != 0 {
+            if 2 as i32 as f64 * err > dx || x1 != 0 {
                 x0 += sx;
                 dx += xy;
                 dy += yy;
@@ -580,371 +570,370 @@ pub unsafe extern "C" fn plotQuadRationalBezierSeg(
             }
         }
     }
-    plotLine(x0, y0, x2, y2);
+    plot_line(x0, y0, x2, y2);
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotQuadRationalBezier(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
-    mut x2: libc::c_int,
-    mut y2: libc::c_int,
-    mut w: libc::c_float,
+
+pub fn plot_quad_rational_bezier(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut x2: i32,
+    mut y2: i32,
+    mut w: f32,
 ) {
-    let mut x: libc::c_int = x0 - 2 as libc::c_int * x1 + x2;
-    let mut y: libc::c_int = y0 - 2 as libc::c_int * y1 + y2;
-    let mut xx: libc::c_double = (x0 - x1) as libc::c_double;
-    let mut yy: libc::c_double = (y0 - y1) as libc::c_double;
-    let mut ww: libc::c_double = 0.;
-    let mut t: libc::c_double = 0.;
-    let mut q: libc::c_double = 0.;
-    assert((w as libc::c_double >= 0.0f64) as libc::c_int);
-    if xx * (x2 - x1) as libc::c_double > 0 as libc::c_int as libc::c_double {
-        if yy * (y2 - y1) as libc::c_double > 0 as libc::c_int as libc::c_double {
-            if fabs(xx * y as libc::c_double) > fabs(yy * x as libc::c_double) {
+    let mut x: i32 = x0 - 2 as i32 * x1 + x2;
+    let mut y: i32 = y0 - 2 as i32 * y1 + y2;
+    let mut xx: f64 = (x0 - x1) as f64;
+    let mut yy: f64 = (y0 - y1) as f64;
+    let mut ww: f64 = 0.;
+    let mut t: f64 = 0.;
+    let mut q: f64 = 0.;
+    assert!(w as f64 >= 0.0f64);
+    if xx * (x2 - x1) as f64 > 0 as i32 as f64 {
+        if yy * (y2 - y1) as f64 > 0 as i32 as f64 {
+            if f64::abs(xx * y as f64) > f64::abs(yy * x as f64) {
                 x0 = x2;
-                x2 = (xx + x1 as libc::c_double) as libc::c_int;
+                x2 = (xx + x1 as f64) as i32;
                 y0 = y2;
-                y2 = (yy + y1 as libc::c_double) as libc::c_int;
+                y2 = (yy + y1 as f64) as i32;
             }
         }
-        if x0 == x2 || w as libc::c_double == 1.0f64 {
-            t = (x0 - x1) as libc::c_double / x as libc::c_double;
+        if x0 == x2 || w as f64 == 1.0f64 {
+            t = (x0 - x1) as f64 / x as f64;
         } else {
-            q = sqrt(
-                4.0f64 * w as libc::c_double * w as libc::c_double
-                    * (x0 - x1) as libc::c_double * (x2 - x1) as libc::c_double
-                    + ((x2 - x0) as libc::c_long * (x2 - x0) as libc::c_long)
-                        as libc::c_double,
+            q = f64::sqrt(
+                4.0f64 * w as f64 * w as f64
+                    * (x0 - x1) as f64 * (x2 - x1) as f64
+                    + ((x2 - x0) as i64 * (x2 - x0) as i64)
+                        as f64,
             );
             if x1 < x0 {
                 q = -q;
             }
-            t = (2.0f64 * w as libc::c_double * (x0 - x1) as libc::c_double
-                - x0 as libc::c_double + x2 as libc::c_double + q)
-                / (2.0f64 * (1.0f64 - w as libc::c_double)
-                    * (x2 - x0) as libc::c_double);
+            t = (2.0f64 * w as f64 * (x0 - x1) as f64
+                - x0 as f64 + x2 as f64 + q)
+                / (2.0f64 * (1.0f64 - w as f64)
+                    * (x2 - x0) as f64);
         }
         q = 1.0f64
-            / (2.0f64 * t * (1.0f64 - t) * (w as libc::c_double - 1.0f64) + 1.0f64);
+            / (2.0f64 * t * (1.0f64 - t) * (w as f64 - 1.0f64) + 1.0f64);
         xx = (t * t
-            * (x0 as libc::c_double - 2.0f64 * w as libc::c_double * x1 as libc::c_double
-                + x2 as libc::c_double)
+            * (x0 as f64 - 2.0f64 * w as f64 * x1 as f64
+                + x2 as f64)
             + 2.0f64 * t
-                * (w * x1 as libc::c_float - x0 as libc::c_float) as libc::c_double
-            + x0 as libc::c_double) * q;
+                * (w * x1 as f32 - x0 as f32) as f64
+            + x0 as f64) * q;
         yy = (t * t
-            * (y0 as libc::c_double - 2.0f64 * w as libc::c_double * y1 as libc::c_double
-                + y2 as libc::c_double)
+            * (y0 as f64 - 2.0f64 * w as f64 * y1 as f64
+                + y2 as f64)
             + 2.0f64 * t
-                * (w * y1 as libc::c_float - y0 as libc::c_float) as libc::c_double
-            + y0 as libc::c_double) * q;
-        ww = t * (w as libc::c_double - 1.0f64) + 1.0f64;
+                * (w * y1 as f32 - y0 as f32) as f64
+            + y0 as f64) * q;
+        ww = t * (w as f64 - 1.0f64) + 1.0f64;
         ww *= ww * q;
-        w = (((1.0f64 - t) * (w as libc::c_double - 1.0f64) + 1.0f64) * sqrt(q))
-            as libc::c_float;
-        x = floor(xx + 0.5f64) as libc::c_int;
-        y = floor(yy + 0.5f64) as libc::c_int;
-        yy = (xx - x0 as libc::c_double) * (y1 - y0) as libc::c_double
-            / (x1 - x0) as libc::c_double + y0 as libc::c_double;
-        plotQuadRationalBezierSeg(
+        w = (((1.0f64 - t) * (w as f64 - 1.0f64) + 1.0f64) * q.sqrt())
+            as f32;
+        x = f64::floor(xx + 0.5f64) as i32;
+        y = f64::floor(yy + 0.5f64) as i32;
+        yy = (xx - x0 as f64) * (y1 - y0) as f64
+            / (x1 - x0) as f64 + y0 as f64;
+        plot_quad_rational_bezier_seg(
             x0,
             y0,
             x,
-            floor(yy + 0.5f64) as libc::c_int,
+            f64::floor(yy + 0.5f64) as i32,
             x,
             y,
-            ww as libc::c_float,
+            ww as f32,
         );
-        yy = (xx - x2 as libc::c_double) * (y1 - y2) as libc::c_double
-            / (x1 - x2) as libc::c_double + y2 as libc::c_double;
-        y1 = floor(yy + 0.5f64) as libc::c_int;
+        yy = (xx - x2 as f64) * (y1 - y2) as f64
+            / (x1 - x2) as f64 + y2 as f64;
+        y1 = f64::floor(yy + 0.5f64) as i32;
         x1 = x;
         x0 = x1;
         y0 = y;
     }
-    if (y0 - y1) as libc::c_long * (y2 - y1) as libc::c_long
-        > 0 as libc::c_int as libc::c_long
+    if (y0 - y1) as i64 * (y2 - y1) as i64
+        > 0 as i32 as i64
     {
-        if y0 == y2 || w as libc::c_double == 1.0f64 {
-            t = (y0 - y1) as libc::c_double
-                / (y0 as libc::c_double - 2.0f64 * y1 as libc::c_double
-                    + y2 as libc::c_double);
+        if y0 == y2 || w as f64 == 1.0f64 {
+            t = (y0 - y1) as f64
+                / (y0 as f64 - 2.0f64 * y1 as f64
+                    + y2 as f64);
         } else {
-            q = sqrt(
-                4.0f64 * w as libc::c_double * w as libc::c_double
-                    * (y0 - y1) as libc::c_double * (y2 - y1) as libc::c_double
-                    + ((y2 - y0) as libc::c_long * (y2 - y0) as libc::c_long)
-                        as libc::c_double,
+            q = f64::sqrt(
+                4.0f64 * w as f64 * w as f64
+                    * (y0 - y1) as f64 * (y2 - y1) as f64
+                    + ((y2 - y0) as i64 * (y2 - y0) as i64)
+                        as f64,
             );
             if y1 < y0 {
                 q = -q;
             }
-            t = (2.0f64 * w as libc::c_double * (y0 - y1) as libc::c_double
-                - y0 as libc::c_double + y2 as libc::c_double + q)
-                / (2.0f64 * (1.0f64 - w as libc::c_double)
-                    * (y2 - y0) as libc::c_double);
+            t = (2.0f64 * w as f64 * (y0 - y1) as f64
+                - y0 as f64 + y2 as f64 + q)
+                / (2.0f64 * (1.0f64 - w as f64)
+                    * (y2 - y0) as f64);
         }
         q = 1.0f64
-            / (2.0f64 * t * (1.0f64 - t) * (w as libc::c_double - 1.0f64) + 1.0f64);
+            / (2.0f64 * t * (1.0f64 - t) * (w as f64 - 1.0f64) + 1.0f64);
         xx = (t * t
-            * (x0 as libc::c_double - 2.0f64 * w as libc::c_double * x1 as libc::c_double
-                + x2 as libc::c_double)
+            * (x0 as f64 - 2.0f64 * w as f64 * x1 as f64
+                + x2 as f64)
             + 2.0f64 * t
-                * (w * x1 as libc::c_float - x0 as libc::c_float) as libc::c_double
-            + x0 as libc::c_double) * q;
+                * (w * x1 as f32 - x0 as f32) as f64
+            + x0 as f64) * q;
         yy = (t * t
-            * (y0 as libc::c_double - 2.0f64 * w as libc::c_double * y1 as libc::c_double
-                + y2 as libc::c_double)
+            * (y0 as f64 - 2.0f64 * w as f64 * y1 as f64
+                + y2 as f64)
             + 2.0f64 * t
-                * (w * y1 as libc::c_float - y0 as libc::c_float) as libc::c_double
-            + y0 as libc::c_double) * q;
-        ww = t * (w as libc::c_double - 1.0f64) + 1.0f64;
+                * (w * y1 as f32 - y0 as f32) as f64
+            + y0 as f64) * q;
+        ww = t * (w as f64 - 1.0f64) + 1.0f64;
         ww *= ww * q;
-        w = (((1.0f64 - t) * (w as libc::c_double - 1.0f64) + 1.0f64) * sqrt(q))
-            as libc::c_float;
-        x = floor(xx + 0.5f64) as libc::c_int;
-        y = floor(yy + 0.5f64) as libc::c_int;
-        xx = (x1 - x0) as libc::c_double * (yy - y0 as libc::c_double)
-            / (y1 - y0) as libc::c_double + x0 as libc::c_double;
-        plotQuadRationalBezierSeg(
+        w = (((1.0f64 - t) * (w as f64 - 1.0f64) + 1.0f64) * f64::sqrt(q))
+            as f32;
+        x = f64::floor(xx + 0.5f64) as i32;
+        y = f64::floor(yy + 0.5f64) as i32;
+        xx = (x1 - x0) as f64 * (yy - y0 as f64)
+            / (y1 - y0) as f64 + x0 as f64;
+        plot_quad_rational_bezier_seg(
             x0,
             y0,
-            floor(xx + 0.5f64) as libc::c_int,
+            f64::floor(xx + 0.5f64) as i32,
             y,
             x,
             y,
-            ww as libc::c_float,
+            ww as f32,
         );
-        xx = (x1 - x2) as libc::c_double * (yy - y2 as libc::c_double)
-            / (y1 - y2) as libc::c_double + x2 as libc::c_double;
-        x1 = floor(xx + 0.5f64) as libc::c_int;
+        xx = (x1 - x2) as f64 * (yy - y2 as f64)
+            / (y1 - y2) as f64 + x2 as f64;
+        x1 = f64::floor(xx + 0.5f64) as i32;
         x0 = x;
         y1 = y;
         y0 = y1;
     }
-    plotQuadRationalBezierSeg(x0, y0, x1, y1, x2, y2, w * w);
+    plot_quad_rational_bezier_seg(x0, y0, x1, y1, x2, y2, w * w);
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotRotatedEllipse(
-    mut x: libc::c_int,
-    mut y: libc::c_int,
-    mut a: libc::c_int,
-    mut b: libc::c_int,
-    mut angle: libc::c_float,
+
+pub fn plotRotatedEllipse(
+    mut x: i32,
+    mut y: i32,
+    mut a: i32,
+    mut b: i32,
+    mut angle: f32,
 ) {
-    let mut xd: libc::c_float = (a as libc::c_long * a as libc::c_long) as libc::c_float;
-    let mut yd: libc::c_float = (b as libc::c_long * b as libc::c_long) as libc::c_float;
-    let mut s: libc::c_float = sin(angle as libc::c_double) as libc::c_float;
-    let mut zd: libc::c_float = (xd - yd) * s;
-    xd = sqrt((xd - zd * s) as libc::c_double) as libc::c_float;
-    yd = sqrt((yd + zd * s) as libc::c_double) as libc::c_float;
-    a = (xd as libc::c_double + 0.5f64) as libc::c_int;
-    b = (yd as libc::c_double + 0.5f64) as libc::c_int;
-    zd = zd * a as libc::c_float * b as libc::c_float / (xd * yd);
+    let mut xd: f32 = (a as i64 * a as i64) as f32;
+    let mut yd: f32 = (b as i64 * b as i64) as f32;
+    let mut s: f32 = f64::sin(angle as f64) as f32;
+    let mut zd: f32 = (xd - yd) * s;
+    xd = f64::sqrt((xd - zd * s) as f64) as f32;
+    yd = f64::sqrt((yd + zd * s) as f64) as f32;
+    a = (xd as f64 + 0.5f64) as i32;
+    b = (yd as f64 + 0.5f64) as i32;
+    zd = zd * a as f32 * b as f32 / (xd * yd);
     plotRotatedEllipseRect(
         x - a,
         y - b,
         x + a,
         y + b,
-        ((4 as libc::c_int as libc::c_float * zd) as libc::c_double
-            * cos(angle as libc::c_double)) as libc::c_long,
+        ((4 as i32 as f32 * zd) as f64
+            * f64::cos(angle as f64)) as i64,
     );
 }
-#[export_name = "plotRotatedEllipseRect"]
-pub unsafe extern "C" fn plotRotatedEllipseRect_0(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
-    mut zd: libc::c_long,
+
+pub fn plotRotatedEllipseRect(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut zd: i64,
 ) {
-    let mut xd: libc::c_int = x1 - x0;
-    let mut yd: libc::c_int = y1 - y0;
-    let mut w: libc::c_float = (xd as libc::c_long * yd as libc::c_long)
-        as libc::c_float;
-    if zd == 0 as libc::c_int as libc::c_long {
-        return plotEllipseRect(x0, y0, x1, y1);
+    let mut xd: i32 = x1 - x0;
+    let mut yd: i32 = y1 - y0;
+    let mut w: f32 = (xd as i64 * yd as i64)
+        as f32;
+    if zd == 0 as i32 as i64 {
+        return plot_ellipse_rect(x0, y0, x1, y1);
     }
-    if w as libc::c_double != 0.0f64 {
-        w = (w - zd as libc::c_float) / (w + w);
+    if w as f64 != 0.0f64 {
+        w = (w - zd as f32) / (w + w);
     }
-    assert(
-        (w as libc::c_double <= 1.0f64 && w as libc::c_double >= 0.0f64) as libc::c_int,
+    assert!(
+        w as f64 <= 1.0f64 && w as f64 >= 0.0f64,
     );
-    xd = floor((xd as libc::c_float * w) as libc::c_double + 0.5f64) as libc::c_int;
-    yd = floor((yd as libc::c_float * w) as libc::c_double + 0.5f64) as libc::c_int;
-    plotQuadRationalBezierSeg(
+    xd = f64::floor((xd as f32 * w) as f64 + 0.5f64) as i32;
+    yd = f64::floor((yd as f32 * w) as f64 + 0.5f64) as i32;
+    plot_quad_rational_bezier_seg(
         x0,
         y0 + yd,
         x0,
         y0,
         x0 + xd,
         y0,
-        (1.0f64 - w as libc::c_double) as libc::c_float,
+        (1.0f64 - w as f64) as f32,
     );
-    plotQuadRationalBezierSeg(x0, y0 + yd, x0, y1, x1 - xd, y1, w);
-    plotQuadRationalBezierSeg(
+    plot_quad_rational_bezier_seg(x0, y0 + yd, x0, y1, x1 - xd, y1, w);
+    plot_quad_rational_bezier_seg(
         x1,
         y1 - yd,
         x1,
         y1,
         x1 - xd,
         y1,
-        (1.0f64 - w as libc::c_double) as libc::c_float,
+        (1.0f64 - w as f64) as f32,
     );
-    plotQuadRationalBezierSeg(x1, y1 - yd, x1, y0, x0 + xd, y0, w);
+    plot_quad_rational_bezier_seg(x1, y1 - yd, x1, y0, x0 + xd, y0, w);
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotCubicBezierSeg(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_float,
-    mut y1: libc::c_float,
-    mut x2: libc::c_float,
-    mut y2: libc::c_float,
-    mut x3: libc::c_int,
-    mut y3: libc::c_int,
+
+// requires unsafe
+/* pub fn plotCubicBezierSeg(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: f32,
+    mut y1: f32,
+    mut x2: f32,
+    mut y2: f32,
+    mut x3: i32,
+    mut y3: i32,
 ) {
-    let mut f: libc::c_int = 0;
-    let mut fx: libc::c_int = 0;
-    let mut fy: libc::c_int = 0;
-    let mut leg: libc::c_int = 1 as libc::c_int;
-    let mut sx: libc::c_int = if x0 < x3 {
-        1 as libc::c_int
+    let mut f: i32 = 0;
+    let mut fx: i32 = 0;
+    let mut fy: i32 = 0;
+    let mut leg: i32 = 1 as i32;
+    let mut sx: i32 = if x0 < x3 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut sy: libc::c_int = if y0 < y3 {
-        1 as libc::c_int
+    let mut sy: i32 = if y0 < y3 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut xc: libc::c_float = -fabs(
-        (x0 as libc::c_float + x1 - x2 - x3 as libc::c_float) as libc::c_double,
-    ) as libc::c_float;
-    let mut xa: libc::c_float = xc
-        - (4 as libc::c_int * sx) as libc::c_float * (x1 - x2);
-    let mut xb: libc::c_float = sx as libc::c_float
-        * (x0 as libc::c_float - x1 - x2 + x3 as libc::c_float);
-    let mut yc: libc::c_float = -fabs(
-        (y0 as libc::c_float + y1 - y2 - y3 as libc::c_float) as libc::c_double,
-    ) as libc::c_float;
-    let mut ya: libc::c_float = yc
-        - (4 as libc::c_int * sy) as libc::c_float * (y1 - y2);
-    let mut yb: libc::c_float = sy as libc::c_float
-        * (y0 as libc::c_float - y1 - y2 + y3 as libc::c_float);
-    let mut ab: libc::c_double = 0.;
-    let mut ac: libc::c_double = 0.;
-    let mut bc: libc::c_double = 0.;
-    let mut cb: libc::c_double = 0.;
-    let mut xx: libc::c_double = 0.;
-    let mut xy: libc::c_double = 0.;
-    let mut yy: libc::c_double = 0.;
-    let mut dx: libc::c_double = 0.;
-    let mut dy: libc::c_double = 0.;
-    let mut ex: libc::c_double = 0.;
-    let mut pxy: *mut libc::c_double = 0 as *mut libc::c_double;
-    let mut EP: libc::c_double = 0.01f64;
-    assert(
-        ((((x1 - x0 as libc::c_float) * (x2 - x3 as libc::c_float)) as libc::c_double)
+    let mut xc: f32 = -f64::abs(
+        (x0 as f32 + x1 - x2 - x3 as f32) as f64,
+    ) as f32;
+    let mut xa: f32 = xc
+        - (4 as i32 * sx) as f32 * (x1 - x2);
+    let mut xb: f32 = sx as f32
+        * (x0 as f32 - x1 - x2 + x3 as f32);
+    let mut yc: f32 = -f64::abs(
+        (y0 as f32 + y1 - y2 - y3 as f32) as f64,
+    ) as f32;
+    let mut ya: f32 = yc
+        - (4 as i32 * sy) as f32 * (y1 - y2);
+    let mut yb: f32 = sy as f32
+        * (y0 as f32 - y1 - y2 + y3 as f32);
+    let mut ab: f64 = 0.;
+    let mut ac: f64 = 0.;
+    let mut bc: f64 = 0.;
+    let mut cb: f64 = 0.;
+    let mut xx: f64 = 0.;
+    let mut xy: f64 = 0.;
+    let mut yy: f64 = 0.;
+    let mut dx: f64 = 0.;
+    let mut dy: f64 = 0.;
+    let mut ex: f64 = 0.;
+    let mut pxy: &mut f64 = &mut 0.;
+    let mut EP: f64 = 0.01f64;
+    assert!(
+        ((((x1 - x0 as f32) * (x2 - x3 as f32)) as f64)
             < EP
-            && ((((x3 - x0) as libc::c_float * (x1 - x2)) as libc::c_double) < EP
-                || ((xb * xb) as libc::c_double) < (xa * xc) as libc::c_double + EP))
-            as libc::c_int,
+            && ((((x3 - x0) as f32 * (x1 - x2)) as f64) < EP
+                || ((xb * xb) as f64) < (xa * xc) as f64 + EP))
     );
-    assert(
-        ((((y1 - y0 as libc::c_float) * (y2 - y3 as libc::c_float)) as libc::c_double)
+    assert!(
+        ((((y1 - y0 as f32) * (y2 - y3 as f32)) as f64)
             < EP
-            && ((((y3 - y0) as libc::c_float * (y1 - y2)) as libc::c_double) < EP
-                || ((yb * yb) as libc::c_double) < (ya * yc) as libc::c_double + EP))
-            as libc::c_int,
+            && ((((y3 - y0) as f32 * (y1 - y2)) as f64) < EP
+                || ((yb * yb) as f64) < (ya * yc) as f64 + EP))
     );
-    if xa == 0 as libc::c_int as libc::c_float && ya == 0 as libc::c_int as libc::c_float
+    if xa == 0 as i32 as f32 && ya == 0 as i32 as f32
     {
-        sx = floor(
-            ((3 as libc::c_int as libc::c_float * x1 - x0 as libc::c_float
-                + 1 as libc::c_int as libc::c_float) / 2 as libc::c_int as libc::c_float)
-                as libc::c_double,
-        ) as libc::c_int;
-        sy = floor(
-            ((3 as libc::c_int as libc::c_float * y1 - y0 as libc::c_float
-                + 1 as libc::c_int as libc::c_float) / 2 as libc::c_int as libc::c_float)
-                as libc::c_double,
-        ) as libc::c_int;
-        return plotQuadBezierSeg(x0, y0, sx, sy, x3, y3);
+        sx = f64::floor(
+            ((3 as i32 as f32 * x1 - x0 as f32
+                + 1 as i32 as f32) / 2 as i32 as f32)
+                as f64,
+        ) as i32;
+        sy = f64::floor(
+            ((3 as i32 as f32 * y1 - y0 as f32
+                + 1 as i32 as f32) / 2 as i32 as f32)
+                as f64,
+        ) as i32;
+        return plot_quad_bezier_seg(x0, y0, sx, sy, x3, y3);
     }
-    x1 = (x1 - x0 as libc::c_float) * (x1 - x0 as libc::c_float)
-        + (y1 - y0 as libc::c_float) * (y1 - y0 as libc::c_float)
-        + 1 as libc::c_int as libc::c_float;
-    x2 = (x2 - x3 as libc::c_float) * (x2 - x3 as libc::c_float)
-        + (y2 - y3 as libc::c_float) * (y2 - y3 as libc::c_float)
-        + 1 as libc::c_int as libc::c_float;
+    x1 = (x1 - x0 as f32) * (x1 - x0 as f32)
+        + (y1 - y0 as f32) * (y1 - y0 as f32)
+        + 1 as i32 as f32;
+    x2 = (x2 - x3 as f32) * (x2 - x3 as f32)
+        + (y2 - y3 as f32) * (y2 - y3 as f32)
+        + 1 as i32 as f32;
     loop {
-        ab = (xa * yb - xb * ya) as libc::c_double;
-        ac = (xa * yc - xc * ya) as libc::c_double;
-        bc = (xb * yc - xc * yb) as libc::c_double;
-        ex = ab * (ab + ac - 3 as libc::c_int as libc::c_double * bc) + ac * ac;
-        f = (if ex > 0 as libc::c_int as libc::c_double {
-            1 as libc::c_int as libc::c_double
+        ab = (xa * yb - xb * ya) as f64;
+        ac = (xa * yc - xc * ya) as f64;
+        bc = (xb * yc - xc * yb) as f64;
+        ex = ab * (ab + ac - 3 as i32 as f64 * bc) + ac * ac;
+        f = (if ex > 0 as i32 as f64 {
+            1 as i32 as f64
         } else {
-            sqrt(
-                (1 as libc::c_int as libc::c_float
-                    + 1024 as libc::c_int as libc::c_float / x1) as libc::c_double,
+            f64::sqrt(
+                (1 as i32 as f32
+                    + 1024 as i32 as f32 / x1) as f64,
             )
-        }) as libc::c_int;
-        ab *= f as libc::c_double;
-        ac *= f as libc::c_double;
-        bc *= f as libc::c_double;
-        ex *= (f * f) as libc::c_double;
-        xy = 9 as libc::c_int as libc::c_double * (ab + ac + bc)
-            / 8 as libc::c_int as libc::c_double;
-        cb = (8 as libc::c_int as libc::c_float * (xa - ya)) as libc::c_double;
-        dx = 27 as libc::c_int as libc::c_double
-            * (8 as libc::c_int as libc::c_double * ab
-                * (yb * yb - ya * yc) as libc::c_double
+        }) as i32;
+        ab *= f as f64;
+        ac *= f as f64;
+        bc *= f as f64;
+        ex *= (f * f) as f64;
+        xy = 9 as i32 as f64 * (ab + ac + bc)
+            / 8 as i32 as f64;
+        cb = (8 as i32 as f32 * (xa - ya)) as f64;
+        dx = 27 as i32 as f64
+            * (8 as i32 as f64 * ab
+                * (yb * yb - ya * yc) as f64
                 + ex
-                    * (ya + 2 as libc::c_int as libc::c_float * yb + yc)
-                        as libc::c_double) / 64 as libc::c_int as libc::c_double
-            - (ya * ya) as libc::c_double * (xy - ya as libc::c_double);
-        dy = 27 as libc::c_int as libc::c_double
-            * (8 as libc::c_int as libc::c_double * ab
-                * (xb * xb - xa * xc) as libc::c_double
+                    * (ya + 2 as i32 as f32 * yb + yc)
+                        as f64) / 64 as i32 as f64
+            - (ya * ya) as f64 * (xy - ya as f64);
+        dy = 27 as i32 as f64
+            * (8 as i32 as f64 * ab
+                * (xb * xb - xa * xc) as f64
                 - ex
-                    * (xa + 2 as libc::c_int as libc::c_float * xb + xc)
-                        as libc::c_double) / 64 as libc::c_int as libc::c_double
-            - (xa * xa) as libc::c_double * (xy + xa as libc::c_double);
-        xx = 3 as libc::c_int as libc::c_double
-            * (3 as libc::c_int as libc::c_double * ab
-                * (3 as libc::c_int as libc::c_float * yb * yb - ya * ya
-                    - 2 as libc::c_int as libc::c_float * ya * yc) as libc::c_double
-                - ya as libc::c_double
-                    * (3 as libc::c_int as libc::c_double * ac
-                        * (ya + yb) as libc::c_double + ya as libc::c_double * cb))
-            / 4 as libc::c_int as libc::c_double;
-        yy = 3 as libc::c_int as libc::c_double
-            * (3 as libc::c_int as libc::c_double * ab
-                * (3 as libc::c_int as libc::c_float * xb * xb - xa * xa
-                    - 2 as libc::c_int as libc::c_float * xa * xc) as libc::c_double
-                - xa as libc::c_double
-                    * (3 as libc::c_int as libc::c_double * ac
-                        * (xa + xb) as libc::c_double + xa as libc::c_double * cb))
-            / 4 as libc::c_int as libc::c_double;
-        xy = (xa * ya) as libc::c_double
-            * (6 as libc::c_int as libc::c_double * ab
-                + 6 as libc::c_int as libc::c_double * ac
-                - 3 as libc::c_int as libc::c_double * bc + cb);
-        ac = (ya * ya) as libc::c_double;
-        cb = (xa * xa) as libc::c_double;
-        xy = 3 as libc::c_int as libc::c_double
+                    * (xa + 2 as i32 as f32 * xb + xc)
+                        as f64) / 64 as i32 as f64
+            - (xa * xa) as f64 * (xy + xa as f64);
+        xx = 3 as i32 as f64
+            * (3 as i32 as f64 * ab
+                * (3 as i32 as f32 * yb * yb - ya * ya
+                    - 2 as i32 as f32 * ya * yc) as f64
+                - ya as f64
+                    * (3 as i32 as f64 * ac
+                        * (ya + yb) as f64 + ya as f64 * cb))
+            / 4 as i32 as f64;
+        yy = 3 as i32 as f64
+            * (3 as i32 as f64 * ab
+                * (3 as i32 as f32 * xb * xb - xa * xa
+                    - 2 as i32 as f32 * xa * xc) as f64
+                - xa as f64
+                    * (3 as i32 as f64 * ac
+                        * (xa + xb) as f64 + xa as f64 * cb))
+            / 4 as i32 as f64;
+        xy = (xa * ya) as f64
+            * (6 as i32 as f64 * ab
+                + 6 as i32 as f64 * ac
+                - 3 as i32 as f64 * bc + cb);
+        ac = (ya * ya) as f64;
+        cb = (xa * xa) as f64;
+        xy = 3 as i32 as f64
             * (xy
-                + (9 as libc::c_int * f) as libc::c_double
-                    * (cb * yb as libc::c_double * yc as libc::c_double
-                        - (xb * xc) as libc::c_double * ac)
-                - (18 as libc::c_int as libc::c_float * xb * yb) as libc::c_double * ab)
-            / 8 as libc::c_int as libc::c_double;
-        if ex < 0 as libc::c_int as libc::c_double {
+                + (9 as i32 * f) as f64
+                    * (cb * yb as f64 * yc as f64
+                        - (xb * xc) as f64 * ac)
+                - (18 as i32 as f32 * xb * yb) as f64 * ab)
+            / 8 as i32 as f64;
+        if ex < 0 as i32 as f64 {
             dx = -dx;
             dy = -dy;
             xx = -xx;
@@ -953,10 +942,10 @@ pub unsafe extern "C" fn plotCubicBezierSeg(
             ac = -ac;
             cb = -cb;
         }
-        ab = (6 as libc::c_int as libc::c_float * ya) as libc::c_double * ac;
-        ac = (-(6 as libc::c_int) as libc::c_float * xa) as libc::c_double * ac;
-        bc = (6 as libc::c_int as libc::c_float * ya) as libc::c_double * cb;
-        cb = (-(6 as libc::c_int) as libc::c_float * xa) as libc::c_double * cb;
+        ab = (6 as i32 as f32 * ya) as f64 * ac;
+        ac = (-(6 as i32) as f32 * xa) as f64 * ac;
+        bc = (6 as i32 as f32 * ya) as f64 * cb;
+        cb = (-(6 as i32) as f32 * xa) as f64 * cb;
         dx += xy;
         ex = dx + dy;
         dy += xy;
@@ -969,8 +958,8 @@ pub unsafe extern "C" fn plotCubicBezierSeg(
                 if dx > *pxy || dy < *pxy {
                     break 's_201;
                 }
-                y1 = (2 as libc::c_int as libc::c_double * ex - dy) as libc::c_float;
-                if 2 as libc::c_int as libc::c_double * ex >= dx {
+                y1 = (2 as i32 as f64 * ex - dy) as f32;
+                if 2 as i32 as f64 * ex >= dx {
                     fx -= 1;
                     dx += xx;
                     ex += dx;
@@ -979,7 +968,7 @@ pub unsafe extern "C" fn plotCubicBezierSeg(
                     yy += bc;
                     xx += ab;
                 }
-                if y1 <= 0 as libc::c_int as libc::c_float {
+                if y1 <= 0 as i32 as f32 {
                     fy -= 1;
                     dy += yy;
                     ex += dy;
@@ -988,33 +977,33 @@ pub unsafe extern "C" fn plotCubicBezierSeg(
                     xx += ac;
                     yy += cb;
                 }
-                if !(fx > 0 as libc::c_int && fy > 0 as libc::c_int) {
+                if !(fx > 0 as i32 && fy > 0 as i32) {
                     break;
                 }
             }
-            if 2 as libc::c_int * fx <= f {
+            if 2 as i32 * fx <= f {
                 x0 += sx;
                 fx += f;
             }
-            if 2 as libc::c_int * fy <= f {
+            if 2 as i32 * fy <= f {
                 y0 += sy;
                 fy += f;
             }
-            if pxy == &mut xy as *mut libc::c_double
-                && dx < 0 as libc::c_int as libc::c_double
-                && dy > 0 as libc::c_int as libc::c_double
+            if pxy == &mut xy as &mut f64
+                && dx < 0 as i32 as f64
+                && dy > 0 as i32 as f64
             {
                 pxy = &mut EP;
             }
         }
-        xx = x0 as libc::c_double;
+        xx = x0 as f64;
         x0 = x3;
-        x3 = xx as libc::c_int;
+        x3 = xx as i32;
         sx = -sx;
         xb = -xb;
-        yy = y0 as libc::c_double;
+        yy = y0 as f64;
         y0 = y3;
-        y3 = yy as libc::c_int;
+        y3 = yy as i32;
         sy = -sy;
         yb = -yb;
         x1 = x2;
@@ -1024,163 +1013,163 @@ pub unsafe extern "C" fn plotCubicBezierSeg(
             break;
         }
     }
-    plotLine(x0, y0, x3, y3);
+    plot_line(x0, y0, x3, y3);
 }
-#[no_mangle]
-pub unsafe extern "C" fn plotCubicBezier(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
-    mut x2: libc::c_int,
-    mut y2: libc::c_int,
-    mut x3: libc::c_int,
-    mut y3: libc::c_int,
+
+pub fn plotCubicBezier(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
+    mut x2: i32,
+    mut y2: i32,
+    mut x3: i32,
+    mut y3: i32,
 ) {
-    let mut n: libc::c_int = 0 as libc::c_int;
-    let mut i: libc::c_int = 0 as libc::c_int;
-    let mut xc: libc::c_long = (x0 + x1 - x2 - x3) as libc::c_long;
-    let mut xa: libc::c_long = xc - (4 as libc::c_int * (x1 - x2)) as libc::c_long;
-    let mut xb: libc::c_long = (x0 - x1 - x2 + x3) as libc::c_long;
-    let mut xd: libc::c_long = xb + (4 as libc::c_int * (x1 + x2)) as libc::c_long;
-    let mut yc: libc::c_long = (y0 + y1 - y2 - y3) as libc::c_long;
-    let mut ya: libc::c_long = yc - (4 as libc::c_int * (y1 - y2)) as libc::c_long;
-    let mut yb: libc::c_long = (y0 - y1 - y2 + y3) as libc::c_long;
-    let mut yd: libc::c_long = yb + (4 as libc::c_int * (y1 + y2)) as libc::c_long;
-    let mut fx0: libc::c_float = x0 as libc::c_float;
-    let mut fx1: libc::c_float = 0.;
-    let mut fx2: libc::c_float = 0.;
-    let mut fx3: libc::c_float = 0.;
-    let mut fy0: libc::c_float = y0 as libc::c_float;
-    let mut fy1: libc::c_float = 0.;
-    let mut fy2: libc::c_float = 0.;
-    let mut fy3: libc::c_float = 0.;
-    let mut t1: libc::c_double = (xb * xb - xa * xc) as libc::c_double;
-    let mut t2: libc::c_double = 0.;
-    let mut t: [libc::c_double; 5] = [0.; 5];
-    if xa == 0 as libc::c_int as libc::c_long {
-        if abs(xc as libc::c_int) < 2 as libc::c_int * abs(xb as libc::c_int) {
+    let mut n: i32 = 0 as i32;
+    let mut i: i32 = 0 as i32;
+    let mut xc: i64 = (x0 + x1 - x2 - x3) as i64;
+    let mut xa: i64 = xc - (4 as i32 * (x1 - x2)) as i64;
+    let mut xb: i64 = (x0 - x1 - x2 + x3) as i64;
+    let mut xd: i64 = xb + (4 as i32 * (x1 + x2)) as i64;
+    let mut yc: i64 = (y0 + y1 - y2 - y3) as i64;
+    let mut ya: i64 = yc - (4 as i32 * (y1 - y2)) as i64;
+    let mut yb: i64 = (y0 - y1 - y2 + y3) as i64;
+    let mut yd: i64 = yb + (4 as i32 * (y1 + y2)) as i64;
+    let mut fx0: f32 = x0 as f32;
+    let mut fx1: f32 = 0.;
+    let mut fx2: f32 = 0.;
+    let mut fx3: f32 = 0.;
+    let mut fy0: f32 = y0 as f32;
+    let mut fy1: f32 = 0.;
+    let mut fy2: f32 = 0.;
+    let mut fy3: f32 = 0.;
+    let mut t1: f64 = (xb * xb - xa * xc) as f64;
+    let mut t2: f64 = 0.;
+    let mut t: [f64; 5] = [0.; 5];
+    if xa == 0 as i32 as i64 {
+        if i32::abs(xc as i32) < 2 as i32 * i32::abs(xb as i32) {
             let fresh6 = n;
             n = n + 1;
-            t[fresh6 as usize] = xc as libc::c_double / (2.0f64 * xb as libc::c_double);
+            t[fresh6 as usize] = xc as f64 / (2.0f64 * xb as f64);
         }
     } else if t1 > 0.0f64 {
-        t2 = sqrt(t1);
-        t1 = (xb as libc::c_double - t2) / xa as libc::c_double;
-        if fabs(t1) < 1.0f64 {
+        t2 = f64::sqrt(t1);
+        t1 = (xb as f64 - t2) / xa as f64;
+        if f64::abs(t1) < 1.0f64 {
             let fresh7 = n;
             n = n + 1;
             t[fresh7 as usize] = t1;
         }
-        t1 = (xb as libc::c_double + t2) / xa as libc::c_double;
-        if fabs(t1) < 1.0f64 {
+        t1 = (xb as f64 + t2) / xa as f64;
+        if f64::abs(t1) < 1.0f64 {
             let fresh8 = n;
             n = n + 1;
             t[fresh8 as usize] = t1;
         }
     }
-    t1 = (yb * yb - ya * yc) as libc::c_double;
-    if ya == 0 as libc::c_int as libc::c_long {
-        if abs(yc as libc::c_int) < 2 as libc::c_int * abs(yb as libc::c_int) {
+    t1 = (yb * yb - ya * yc) as f64;
+    if ya == 0 as i32 as i64 {
+        if i32::abs(yc as i32) < 2 as i32 * i32::abs(yb as i32) {
             let fresh9 = n;
             n = n + 1;
-            t[fresh9 as usize] = yc as libc::c_double / (2.0f64 * yb as libc::c_double);
+            t[fresh9 as usize] = yc as f64 / (2.0f64 * yb as f64);
         }
     } else if t1 > 0.0f64 {
-        t2 = sqrt(t1);
-        t1 = (yb as libc::c_double - t2) / ya as libc::c_double;
-        if fabs(t1) < 1.0f64 {
+        t2 = f64::sqrt(t1);
+        t1 = (yb as f64 - t2) / ya as f64;
+        if f64::abs(t1) < 1.0f64 {
             let fresh10 = n;
             n = n + 1;
             t[fresh10 as usize] = t1;
         }
-        t1 = (yb as libc::c_double + t2) / ya as libc::c_double;
-        if fabs(t1) < 1.0f64 {
+        t1 = (yb as f64 + t2) / ya as f64;
+        if f64::abs(t1) < 1.0f64 {
             let fresh11 = n;
             n = n + 1;
             t[fresh11 as usize] = t1;
         }
     }
-    i = 1 as libc::c_int;
+    i = 1 as i32;
     while i < n {
-        t1 = t[(i - 1 as libc::c_int) as usize];
+        t1 = t[(i - 1 as i32) as usize];
         if t1 > t[i as usize] {
-            t[(i - 1 as libc::c_int) as usize] = t[i as usize];
+            t[(i - 1 as i32) as usize] = t[i as usize];
             t[i as usize] = t1;
-            i = 0 as libc::c_int;
+            i = 0 as i32;
         }
         i += 1;
     }
     t1 = -1.0f64;
     t[n as usize] = 1.0f64;
-    i = 0 as libc::c_int;
+    i = 0 as i32;
     while i <= n {
         t2 = t[i as usize];
         fx1 = ((t1
-            * (t1 * xb as libc::c_double
-                - (2 as libc::c_int as libc::c_long * xc) as libc::c_double)
+            * (t1 * xb as f64
+                - (2 as i32 as i64 * xc) as f64)
             - t2
                 * (t1
-                    * (t1 * xa as libc::c_double
-                        - (2 as libc::c_int as libc::c_long * xb) as libc::c_double)
-                    + xc as libc::c_double) + xd as libc::c_double)
-            / 8 as libc::c_int as libc::c_double - fx0 as libc::c_double)
-            as libc::c_float;
+                    * (t1 * xa as f64
+                        - (2 as i32 as i64 * xb) as f64)
+                    + xc as f64) + xd as f64)
+            / 8 as i32 as f64 - fx0 as f64)
+            as f32;
         fy1 = ((t1
-            * (t1 * yb as libc::c_double
-                - (2 as libc::c_int as libc::c_long * yc) as libc::c_double)
+            * (t1 * yb as f64
+                - (2 as i32 as i64 * yc) as f64)
             - t2
                 * (t1
-                    * (t1 * ya as libc::c_double
-                        - (2 as libc::c_int as libc::c_long * yb) as libc::c_double)
-                    + yc as libc::c_double) + yd as libc::c_double)
-            / 8 as libc::c_int as libc::c_double - fy0 as libc::c_double)
-            as libc::c_float;
+                    * (t1 * ya as f64
+                        - (2 as i32 as i64 * yb) as f64)
+                    + yc as f64) + yd as f64)
+            / 8 as i32 as f64 - fy0 as f64)
+            as f32;
         fx2 = ((t2
-            * (t2 * xb as libc::c_double
-                - (2 as libc::c_int as libc::c_long * xc) as libc::c_double)
+            * (t2 * xb as f64
+                - (2 as i32 as i64 * xc) as f64)
             - t1
                 * (t2
-                    * (t2 * xa as libc::c_double
-                        - (2 as libc::c_int as libc::c_long * xb) as libc::c_double)
-                    + xc as libc::c_double) + xd as libc::c_double)
-            / 8 as libc::c_int as libc::c_double - fx0 as libc::c_double)
-            as libc::c_float;
+                    * (t2 * xa as f64
+                        - (2 as i32 as i64 * xb) as f64)
+                    + xc as f64) + xd as f64)
+            / 8 as i32 as f64 - fx0 as f64)
+            as f32;
         fy2 = ((t2
-            * (t2 * yb as libc::c_double
-                - (2 as libc::c_int as libc::c_long * yc) as libc::c_double)
+            * (t2 * yb as f64
+                - (2 as i32 as i64 * yc) as f64)
             - t1
                 * (t2
-                    * (t2 * ya as libc::c_double
-                        - (2 as libc::c_int as libc::c_long * yb) as libc::c_double)
-                    + yc as libc::c_double) + yd as libc::c_double)
-            / 8 as libc::c_int as libc::c_double - fy0 as libc::c_double)
-            as libc::c_float;
+                    * (t2 * ya as f64
+                        - (2 as i32 as i64 * yb) as f64)
+                    + yc as f64) + yd as f64)
+            / 8 as i32 as f64 - fy0 as f64)
+            as f32;
         fx3 = ((t2
             * (t2
-                * ((3 as libc::c_int as libc::c_long * xb) as libc::c_double
-                    - t2 * xa as libc::c_double)
-                - (3 as libc::c_int as libc::c_long * xc) as libc::c_double)
-            + xd as libc::c_double) / 8 as libc::c_int as libc::c_double)
-            as libc::c_float;
+                * ((3 as i32 as i64 * xb) as f64
+                    - t2 * xa as f64)
+                - (3 as i32 as i64 * xc) as f64)
+            + xd as f64) / 8 as i32 as f64)
+            as f32;
         fx0 -= fx3;
         fy3 = ((t2
             * (t2
-                * ((3 as libc::c_int as libc::c_long * yb) as libc::c_double
-                    - t2 * ya as libc::c_double)
-                - (3 as libc::c_int as libc::c_long * yc) as libc::c_double)
-            + yd as libc::c_double) / 8 as libc::c_int as libc::c_double)
-            as libc::c_float;
+                * ((3 as i32 as i64 * yb) as f64
+                    - t2 * ya as f64)
+                - (3 as i32 as i64 * yc) as f64)
+            + yd as f64) / 8 as i32 as f64)
+            as f32;
         fy0 -= fy3;
-        x3 = floor(fx3 as libc::c_double + 0.5f64) as libc::c_int;
-        y3 = floor(fy3 as libc::c_double + 0.5f64) as libc::c_int;
-        if fx0 as libc::c_double != 0.0f64 {
-            fx0 = (x0 - x3) as libc::c_float / fx0;
+        x3 = f64::floor(fx3 as f64 + 0.5f64) as i32;
+        y3 = f64::floor(fy3 as f64 + 0.5f64) as i32;
+        if fx0 as f64 != 0.0f64 {
+            fx0 = (x0 - x3) as f32 / fx0;
             fx1 *= fx0;
             fx2 *= fx0;
         }
-        if fy0 as libc::c_double != 0.0f64 {
-            fy0 = (y0 - y3) as libc::c_float / fy0;
+        if fy0 as f64 != 0.0f64 {
+            fy0 = (y0 - y3) as f32 / fy0;
             fy1 *= fy0;
             fy2 *= fy0;
         }
@@ -1188,10 +1177,10 @@ pub unsafe extern "C" fn plotCubicBezier(
             plotCubicBezierSeg(
                 x0,
                 y0,
-                x0 as libc::c_float + fx1,
-                y0 as libc::c_float + fy1,
-                x0 as libc::c_float + fx2,
-                y0 as libc::c_float + fy2,
+                x0 as f32 + fx1,
+                y0 as f32 + fy1,
+                x0 as f32 + fx2,
+                y0 as f32 + fy2,
                 x3,
                 y3,
             );
@@ -1203,58 +1192,60 @@ pub unsafe extern "C" fn plotCubicBezier(
         t1 = t2;
         i += 1;
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn plotLineAA(
-    mut x0: libc::c_int,
-    mut y0: libc::c_int,
-    mut x1: libc::c_int,
-    mut y1: libc::c_int,
+} */
+
+fn setPixelAA(x: i32, y: i32, z: i32) {}
+
+pub fn plot_line_AA(
+    mut x0: i32,
+    mut y0: i32,
+    mut x1: i32,
+    mut y1: i32,
 ) {
-    let mut sx: libc::c_int = if x0 < x1 {
-        1 as libc::c_int
+    let mut sx: i32 = if x0 < x1 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut sy: libc::c_int = if y0 < y1 {
-        1 as libc::c_int
+    let mut sy: i32 = if y0 < y1 {
+        1 as i32
     } else {
-        -(1 as libc::c_int)
+        -(1 as i32)
     };
-    let mut x2: libc::c_int = 0;
-    let mut dx: libc::c_long = abs(x1 - x0) as libc::c_long;
-    let mut dy: libc::c_long = abs(y1 - y0) as libc::c_long;
-    let mut err: libc::c_long = dx * dx + dy * dy;
-    let mut e2: libc::c_long = (if err == 0 as libc::c_int as libc::c_long {
-        1 as libc::c_int as libc::c_double
+    let mut x2: i32 = 0;
+    let mut dx: i64 = i32::abs(x1 - x0) as i64;
+    let mut dy: i64 = i32::abs(y1 - y0) as i64;
+    let mut err: i64 = dx * dx + dy * dy;
+    let mut e2: i64 = (if err == 0 as i32 as i64 {
+        1 as i32 as f64
     } else {
-        0xffff7f as libc::c_long as libc::c_double / sqrt(err as libc::c_double)
-    }) as libc::c_long;
+        0xffff7f as i64 as f64 / f64::sqrt(err as f64)
+    }) as i64;
     dx *= e2;
     dy *= e2;
     err = dx - dy;
     loop {
-        setPixelAA(x0, y0, abs((err - dx + dy) as libc::c_int) >> 16 as libc::c_int);
+        setPixelAA(x0, y0, i32::abs((err - dx + dy) as i32) >> 16 as i32);
         e2 = err;
         x2 = x0;
-        if 2 as libc::c_int as libc::c_long * e2 >= -dx {
+        if 2 as i32 as i64 * e2 >= -dx {
             if x0 == x1 {
                 break;
             }
-            if e2 + dy < 0xff0000 as libc::c_long {
-                setPixelAA(x0, y0 + sy, e2 + dy >> 16 as libc::c_int);
+            if e2 + dy < 0xff0000 as i64 {
+                setPixelAA(x0, y0 + sy, ((e2 + dy) >> 16) as i32);
             }
             err -= dy;
             x0 += sx;
         }
-        if !(2 as libc::c_int as libc::c_long * e2 <= dy) {
+        if !(2 as i32 as i64 * e2 <= dy) {
             continue;
         }
         if y0 == y1 {
             break;
         }
-        if dx - e2 < 0xff0000 as libc::c_long {
-            setPixelAA(x2 + sx, y0, dx - e2 >> 16 as libc::c_int);
+        if dx - e2 < 0xff0000 as i64 {
+            setPixelAA(x2 + sx, y0, ((dx - e2) >> 16) as i32);
         }
         err += dx;
         y0 += sy;
