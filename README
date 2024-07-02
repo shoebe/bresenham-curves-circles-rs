@@ -1,3 +1,5 @@
 Algorithms taken from https://github.com/zingl/Bresenham
 
-translated from C to Rust
+Put through https://c2rust.com/ then adapted to:
+ - use rust types instead of libc types
+ - take a function as argument to draw pixels
