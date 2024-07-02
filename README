@@ -3,8 +3,8 @@ Algorithms taken from https://github.com/zingl/Bresenham
 Put through https://c2rust.com/ then adapted to:
  - use rust types instead of libc types
  - take a function as argument to draw pixels
- - modified plot_quad_spline() to take a list of points instead of having
-   to use unsafe pointer arithmetic
+ - plot_quad_spline(): take a list of points instead of having
+   to use unsafe pointer arithmetic for the point list
 
 Only lightly tested
 
