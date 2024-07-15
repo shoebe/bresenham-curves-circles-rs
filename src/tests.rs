@@ -142,3 +142,61 @@ fn test_quad_spline() {
 
     lodepng::encode32_file("generated_images/test_quad_spline.png", &buf, w, h).unwrap();
 }
+
+#[test]
+fn test_line_aa() {
+    let w = 13;
+    let h = 10;
+    let start = (0, 0);
+    let end = (w as i32 - 1, h as i32 - 1);
+
+    let mut buf = vec![BLANK; w * h];
+
+    crate::anti_aliased::plot_line_aa(start.0, start.1, end.0, end.1, |x, y, c| {
+        let i = y as usize * w + x as usize;
+        let mut col = WHITE;
+        col.a = c;
+        buf[i] = col;
+    });
+
+    lodepng::encode32_file("generated_images/test_line_aa.png", &buf, w, h).unwrap();
+}
+
+#[test]
+fn test_line_aa_thick() {
+    let w = 13 + 10;
+    let h = 10 + 10;
+    let start = (5, 5);
+    let end = (w as i32 - 1 - 5, h as i32 - 1 - 5);
+
+    let mut buf = vec![BLANK; w * h];
+
+    crate::anti_aliased::plot_line_width(start.0, start.1, end.0, end.1, 5.0, |x, y, c| {
+        let i = y as usize * w + x as usize;
+        let mut col = WHITE;
+        col.a = c;
+        buf[i] = col;
+    });
+
+    lodepng::encode32_file("generated_images/test_line_aa_thick.png", &buf, w, h).unwrap();
+}
+
+#[test]
+fn test_circle_aa() {
+    let a = 8;
+    let center = (10, 10);
+
+    let w = 20;
+    let h = 20;
+
+    let mut buf = vec![BLANK; w * h];
+
+    crate::anti_aliased::plot_circle_aa(center.0, center.1, a, |x, y, c| {
+        let i = y as usize * w + x as usize;
+        let mut col = WHITE;
+        col.a = c;
+        buf[i] = col;
+    });
+
+    lodepng::encode32_file("generated_images/test_circle_aa.png", &buf, w, h).unwrap();
+}

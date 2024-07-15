@@ -8,7 +8,7 @@ Put through https://c2rust.com/ then adapted to:
 
 Only lightly tested
 
-Did not include any of the aliased/thick functions.
+Did not include all of the functions.
 
 The cubic functions need a bit of work to make them usable
 from safe rust

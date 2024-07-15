@@ -28,6 +28,7 @@ SOFTWARE.
 #[cfg(test)]
 mod tests;
 
+pub mod anti_aliased;
 pub mod cubic_bezier;
 
 pub fn plot_line(mut x0: i32, mut y0: i32, x1: i32, y1: i32, mut set_pixel: impl FnMut(i32, i32)) {
